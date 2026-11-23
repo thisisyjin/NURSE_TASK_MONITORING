@@ -1,41 +1,55 @@
-import type { ArtifactNurse, ArtifactOrder } from '../../domain/artifact/types'
-import { dueOf } from '../../domain/artifact/rules'
+import { formatClock, orderStatus } from '../../domain/artifact/rules'
+import type { ArtifactOrder } from '../../domain/artifact/types'
+import { useDemoStore } from '../../store/demoStore'
 
 interface OrderRowProps {
-  nurse: ArtifactNurse
+  ownerId: string
   patientId: string
   order: ArtifactOrder
   nowMin: number
   showOwnerButton: boolean
   helpers: Array<{ from: string; name: string; show: boolean }>
-  onPerform: (ownerId: string, patientId: string, orderId: number, performerId: string) => void
 }
 
-export function OrderRow({ nurse, patientId, order, nowMin, showOwnerButton, helpers, onPerform }: OrderRowProps) {
+export function OrderRow({ ownerId, patientId, order, nowMin, showOwnerButton, helpers }: OrderRowProps) {
+  const performOrder = useDemoStore((state) => state.performOrder)
+  const acknowledgeOrder = useDemoStore((state) => state.acknowledgeOrder)
+  const returnOrder = useDemoStore((state) => state.returnOrder)
+  const status = orderStatus(order)
+  if (status === 'completed') return null
   const wait = Math.max(0, nowMin - order.at)
-  const due = dueOf(nurse, order)
-  const late = wait >= due
+  const visibleHelpers = helpers.filter((helper) => helper.show)
   return (
-    <div className={late ? 'ord late' : 'ord'}>
+    <div className="ord">
       <span>
-        {order.name}{' '}
-        <span className="w">
-          {order.min}분, 대기 {wait}/기준 {due}분
-        </span>
+        {order.name}
+        {status === 'acknowledged' ? (
+          <span className="w"> 확인중{order.acknowledgedAt != null ? ` ${formatClock(order.acknowledgedAt)}` : ''}</span>
+        ) : (
+          <span className="w"> 대기 {wait}분</span>
+        )}
       </span>
       <span className="acts">
         {showOwnerButton ? (
-          <button type="button" className="sm" onClick={() => onPerform(nurse.id, patientId, order.id, nurse.id)}>
+          <button type="button" className="sm" onClick={() => performOrder(ownerId, patientId, order.id, ownerId)}>
             수행
           </button>
         ) : null}
-        {helpers
-          .filter((helper) => helper.show)
-          .map((helper) => (
-            <button key={helper.from} type="button" className="sm" onClick={() => onPerform(nurse.id, patientId, order.id, helper.from)}>
-              {helper.name} 수행
-            </button>
-          ))}
+        {visibleHelpers.map((helper) => (
+          <button key={helper.from} type="button" className="sm" onClick={() => performOrder(ownerId, patientId, order.id, helper.from)}>
+            {helper.name} 수행
+          </button>
+        ))}
+        {status === 'pending' && showOwnerButton ? (
+          <button type="button" className="sm" onClick={() => acknowledgeOrder(ownerId, patientId, order.id)}>
+            확인중
+          </button>
+        ) : null}
+        {status === 'acknowledged' && showOwnerButton ? (
+          <button type="button" className="sm" onClick={() => returnOrder(ownerId, patientId, order.id)}>
+            대기로 복귀
+          </button>
+        ) : null}
       </span>
     </div>
   )

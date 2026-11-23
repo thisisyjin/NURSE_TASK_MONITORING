@@ -2,16 +2,18 @@ import { describe, expect, it } from 'vitest'
 import { ARTIFACT } from '../../config/artifactConfig'
 import {
   acceptSupport,
+  acknowledgeOrder,
   assignSupport,
   completeOrder,
   declineSupport,
   resetArtifact,
+  returnOrderToPending,
   stepMinutes,
   triggerCpcr,
   triggerSurge,
 } from './actions'
 import { createInitialArtifactState } from './initialState'
-import { buildAlerts, capacityOf, dueOf, findNurse, loadOf, levelOf, minutesLevel, newsRaised, recommendNurse, zoneTimeliness } from './rules'
+import { assignmentBlockReason, buildAlerts, capacityOf, dueOf, findNurse, loadOf, levelOf, minutesLevel, newsRaised, nurseQueue, recommendNurse, zoneTimeliness } from './rules'
 
 const fixed = () => 0.99
 
@@ -43,13 +45,14 @@ describe('최신 Artifact 09:00', () => {
     expect(capacity).toMatchObject({ total: 256, limit: 250, n: 5, level: 'hi' })
   })
 
-  it('초기 알림은 3단계, 김서연 2단계, 이하은 1단계다', () => {
+  it('초기 알림은 인력 3단계와 높음 1단계 두 건이다. 임시 초과 건수는 단계를 올리지 않는다', () => {
     const alerts = buildAlerts(createInitialArtifactState())
-    expect(alerts.map((alert) => alert.st)).toEqual([3, 2, 1])
+    expect(alerts.map((alert) => alert.st)).toEqual([3, 1, 1])
+    expect(alerts.some((alert) => alert.st === 0)).toBe(false)
     expect(alerts[1]?.nurse).toBe('n1')
     expect(alerts[2]?.nurse).toBe('n3')
-    expect(alerts[1]?.txt).toContain('수행 기준 초과 처방 2건')
-    expect(alerts[2]?.txt).toContain("업무량 '높음' 도달")
+    expect(alerts[1]?.txt).toContain('업무 단계: 높음')
+    expect(alerts.some((alert) => alert.txt.includes('수행 기준 초과'))).toBe(false)
   })
 
   it('추천은 여유이면서 업무량이 가장 낮은 한지호다', () => {
@@ -59,11 +62,11 @@ describe('최신 Artifact 09:00', () => {
 
   it('구역별 대기는 미완료 처방만 센다', () => {
     expect(zoneTimeliness(createInitialArtifactState())).toEqual([
-      { zone: '1구역', pendingCount: 6, maxWaitMin: 40, overdueCount: 2 },
-      { zone: '2구역', pendingCount: 2, maxWaitMin: 25, overdueCount: 0 },
-      { zone: '3구역', pendingCount: 2, maxWaitMin: 15, overdueCount: 0 },
-      { zone: '5구역', pendingCount: 1, maxWaitMin: 5, overdueCount: 0 },
-      { zone: '6구역', pendingCount: 2, maxWaitMin: 10, overdueCount: 0 },
+      { zone: '1구역', pendingCount: 6, maxWaitMin: 40, acknowledgedCount: 0, overdueCount: 2 },
+      { zone: '2구역', pendingCount: 2, maxWaitMin: 25, acknowledgedCount: 0, overdueCount: 0 },
+      { zone: '3구역', pendingCount: 2, maxWaitMin: 15, acknowledgedCount: 0, overdueCount: 0 },
+      { zone: '5구역', pendingCount: 1, maxWaitMin: 5, acknowledgedCount: 0, overdueCount: 0 },
+      { zone: '6구역', pendingCount: 2, maxWaitMin: 10, acknowledgedCount: 0, overdueCount: 0 },
     ])
   })
 
@@ -166,5 +169,43 @@ describe('지원과 이벤트', () => {
     const again = triggerCpcr(started.state)
     expect(again.state).toBe(started.state)
     expect(again.toast).toContain('진행 중')
+  })
+
+  it('확인중은 처방을 남기고 활성 대기에서만 빼며 업무량은 유지한다', () => {
+    const initial = createInitialArtifactState()
+    const order = findNurse(initial, 'n1')?.patients[0]?.orders[0]
+    if (!order) throw new Error('order')
+    const marked = acknowledgeOrder(initial, 'n1', '1-01', order.id).state
+    const kept = findNurse(marked, 'n1')?.patients[0]?.orders.find((item) => item.id === order.id)
+    expect(kept).toMatchObject({ status: 'acknowledged', at: order.at })
+    expect(nurseLoad('n1', marked).load?.now).toBe(127)
+    expect(nurseQueue(marked, findNurse(marked, 'n1')!)).toMatchObject({ pendingCount: 5, maxWaitMin: 35, acknowledgedCount: 1 })
+    const back = returnOrderToPending(marked, 'n1', '1-01', order.id).state
+    const restored = findNurse(back, 'n1')?.patients[0]?.orders.find((item) => item.id === order.id)
+    expect(restored).toMatchObject({ status: 'pending', at: order.at })
+    expect(nurseQueue(back, findNurse(back, 'n1')!).pendingCount).toBe(6)
+  })
+
+  it('확인중 처방도 수행하면 목록 집계에서 빠지고 두 번은 기록되지 않는다', () => {
+    const initial = createInitialArtifactState()
+    const order = findNurse(initial, 'n1')?.patients[0]?.orders[0]
+    if (!order) throw new Error('order')
+    const marked = acknowledgeOrder(initial, 'n1', '1-01', order.id).state
+    const done = completeOrder(marked, 'n1', '1-01', order.id, 'n1').state
+    expect(findNurse(done, 'n1')?.patients[0]?.orders.find((item) => item.id === order.id)?.status).toBe('completed')
+    expect(nurseLoad('n1', done).load?.now).toBe(102)
+    expect(done.done.n1).toBe(order.min)
+    const twice = completeOrder(done, 'n1', '1-01', order.id, 'n1').state
+    expect(twice.done.n1).toBe(order.min)
+    expect(twice.activity.filter((item) => item.kind === 'perform')).toHaveLength(1)
+  })
+
+  it('본인, 높음, 이미 배정된 대상에는 지원을 넣지 않는다', () => {
+    const initial = createInitialArtifactState()
+    expect(assignmentBlockReason(initial, 'n1', 'n1')).toContain('본인')
+    expect(assignSupport(initial, 'n3', 'n1').state).toBe(initial)
+    const waiting = assignSupport(initial, 'n6', 'n1').state
+    expect(assignmentBlockReason(waiting, 'n4', 'n1')).toContain('응답')
+    expect(assignSupport(waiting, 'n4', 'n1').state).toBe(waiting)
   })
 })

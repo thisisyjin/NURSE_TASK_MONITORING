@@ -1,7 +1,7 @@
 import { ARTIFACT, CATALOG_MAP, ORDER_CATALOG, SURGE_TYPES } from '../../config/artifactConfig'
-import { findNurse, supportFrom, trackHigh } from './rules'
+import { assignmentBlockReason, findNurse, supportFrom, trackHigh } from './rules'
 import { createInitialArtifactState } from './initialState'
-import type { ArtifactOrder, ArtifactPatient, ArtifactState, ArtifactSupport } from './types'
+import type { ActivityKind, ArtifactOrder, ArtifactPatient, ArtifactState, ArtifactSupport } from './types'
 
 export interface ActionResult {
   state: ArtifactState
@@ -19,7 +19,17 @@ function cloneState(state: ArtifactState): ArtifactState {
 function issue(state: ArtifactState, name: string, at: number): ArtifactOrder {
   const meta = CATALOG_MAP[name]
   state.seq += 1
-  return { id: state.seq, name, at, cat: meta.cat, min: meta.min }
+  return { id: state.seq, name, at, cat: meta.cat, min: meta.min, status: 'pending' }
+}
+
+function topicName(name: string): string {
+  const code = name.charCodeAt(name.length - 1)
+  const batchim = code >= 0xac00 && code <= 0xd7a3 ? (code - 0xac00) % 28 !== 0 : false
+  return `${name}${batchim ? '이' : '가'}`
+}
+
+function pushActivity(state: ArtifactState, kind: ActivityKind, text: string) {
+  state.activity.push({ id: state.activity.length + 1, t: state.t, kind, text })
 }
 
 function pick<T>(items: T[], rand: Rand): T {
@@ -228,16 +238,40 @@ export function completeOrder(state: ArtifactState, ownerId: string, patientId: 
   const next = cloneState(state)
   const nurse = findNurse(next, ownerId)
   const patient = nurse?.patients.find((item) => item.id === patientId)
-  const index = patient?.orders.findIndex((order) => order.id === orderId) ?? -1
-  if (!nurse || !patient || index < 0) return { state }
-  const [order] = patient.orders.splice(index, 1)
+  const order = patient?.orders.find((item) => item.id === orderId)
+  if (!nurse || !patient || !order || order.status === 'completed') return { state }
+  order.status = 'completed'
   next.done[performerId] = (next.done[performerId] ?? 0) + order.min
   if (performerId !== ownerId) {
     const support = next.supports.find((item) => item.from === performerId && item.to === ownerId && !item.end && item.accepted)
     if (support) support.tasks += 1
   }
+  const performer = findNurse(next, performerId)?.name ?? performerId
+  pushActivity(next, 'perform', `${patient.id} ${order.name} 수행, 수행자 ${performer}`)
   trackHigh(next)
-  return { state: next, toast: `${patient.id} ${order.name} 수행 기록, 수행자 ${findNurse(next, performerId)?.name ?? performerId} (${order.min}분 귀속)` }
+  return { state: next, toast: `${patient.id} ${order.name} 수행 기록, 수행자 ${performer} (${order.min}분 귀속)` }
+}
+
+export function acknowledgeOrder(state: ArtifactState, ownerId: string, patientId: string, orderId: number): ActionResult {
+  const next = cloneState(state)
+  const patient = findNurse(next, ownerId)?.patients.find((item) => item.id === patientId)
+  const order = patient?.orders.find((item) => item.id === orderId)
+  if (!patient || !order || (order.status ?? 'pending') !== 'pending') return { state }
+  order.status = 'acknowledged'
+  order.acknowledgedAt = next.t
+  trackHigh(next)
+  return { state: next, toast: `${patient.id} ${order.name}을 확인중으로 바꿨습니다. 수행 전에는 담당 업무량에 포함됩니다.` }
+}
+
+export function returnOrderToPending(state: ArtifactState, ownerId: string, patientId: string, orderId: number): ActionResult {
+  const next = cloneState(state)
+  const patient = findNurse(next, ownerId)?.patients.find((item) => item.id === patientId)
+  const order = patient?.orders.find((item) => item.id === orderId)
+  if (!patient || !order || order.status !== 'acknowledged') return { state }
+  order.status = 'pending'
+  delete order.acknowledgedAt
+  trackHigh(next)
+  return { state: next, toast: `${patient.id} ${order.name}을 수행 대기로 되돌렸습니다.` }
 }
 
 export function toggleHelp(state: ArtifactState, nurseId: string): ActionResult {
@@ -249,13 +283,15 @@ export function toggleHelp(state: ArtifactState, nurseId: string): ActionResult 
 }
 
 export function assignSupport(state: ArtifactState, from: string, to: string): ActionResult {
+  const blocked = assignmentBlockReason(state, from, to)
+  if (blocked) return { state, toast: blocked }
   const next = cloneState(state)
   startSupport(next, from, to)
+  const helper = findNurse(next, from)?.name ?? from
+  const target = findNurse(next, to)?.name ?? to
+  pushActivity(next, 'assign', `${helper}에게 ${target} 지원 배정 요청, 응답 대기`)
   trackHigh(next)
-  return {
-    state: next,
-    toast: `${findNurse(next, from)?.name ?? from} 간호사에게 지원 배정 알림을 보냈습니다. 간호사 화면에서 수락하면 지원이 시작됩니다.`,
-  }
+  return { state: next, toast: `${helper} 간호사에게 지원 배정 알림을 보냈습니다. 수락 전에는 업무량을 줄이지 않습니다.` }
 }
 
 export function acceptSupport(state: ArtifactState, from: string): ActionResult {
@@ -264,8 +300,11 @@ export function acceptSupport(state: ArtifactState, from: string): ActionResult 
   if (!support) return { state }
   support.accepted = true
   support.start = next.t
+  const helper = findNurse(next, from)?.name ?? from
+  const target = findNurse(next, support.to)?.name ?? support.to
+  pushActivity(next, 'accept', `${topicName(helper)} ${target} 지원을 수락`)
   trackHigh(next)
-  return { state: next, toast: `${findNurse(next, from)?.name} → ${findNurse(next, support.to)?.name} 지원 수락, ${findNurse(next, support.to)?.name} 화면이 함께 표시됩니다.` }
+  return { state: next, toast: `${helper} → ${target} 지원 수락. 이제 담당 업무량에 지원 감산을 적용합니다.` }
 }
 
 export function declineSupport(state: ArtifactState, from: string, why: string): ActionResult {
@@ -274,8 +313,11 @@ export function declineSupport(state: ArtifactState, from: string, why: string):
   if (!support) return { state }
   next.supports = next.supports.filter((item) => item !== support)
   next.decline.push({ from, to: support.to, t: next.t, why })
+  const helper = findNurse(next, from)?.name ?? from
+  const target = findNurse(next, support.to)?.name ?? support.to
+  pushActivity(next, 'decline', `${topicName(helper)} ${target} 지원을 거절, 사유: ${why}`)
   trackHigh(next)
-  return { state: next, toast: `지원 거절, 사유: ${why}. 근무조 리더간호사 화면에 다른 지원자가 추천됩니다.` }
+  return { state: next, toast: `지원 거절, 사유: ${why}. 다음 후보를 다시 추천합니다.` }
 }
 
 export function togglePriority(state: ArtifactState, nurseId: string): ActionResult {
@@ -316,6 +358,9 @@ export function endSupport(state: ArtifactState, from: string): ActionResult {
   if (!support) return { state }
   support.end = Math.max(next.t, support.start + ARTIFACT.minimumSupportMin)
   next.supMin[from] = (next.supMin[from] ?? 0) + (support.end - support.start)
+  const helper = findNurse(next, from)?.name ?? from
+  const target = findNurse(next, support.to)?.name ?? support.to
+  pushActivity(next, 'end', `${helper}의 ${target} 지원 종료, ${support.end - support.start}분, 수행 ${support.tasks}건`)
   trackHigh(next)
   return { state: next, toast: `지원 종료, ${support.end - support.start}분, 수행 ${support.tasks}건 기록` }
 }

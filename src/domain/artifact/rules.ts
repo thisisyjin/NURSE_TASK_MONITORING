@@ -17,6 +17,7 @@ import type {
   ArtifactSupport,
   CapacityResult,
   LevelCode,
+  OrderWorkStatus,
   WorkloadBreakdown,
   ZoneTimelinessRow,
 } from './types'
@@ -61,6 +62,23 @@ export function vitalLabel(intervalMin: number): string {
   return intervalMin >= 60 ? `${intervalMin / 60}시간마다` : `${intervalMin}분마다`
 }
 
+export function vitalPeriodLabel(intervalMin: number): string {
+  if (intervalMin >= 60 && intervalMin % 60 === 0) return `활력 주기: ${intervalMin / 60}시간`
+  return `활력 주기: ${intervalMin}분`
+}
+
+export function orderStatus(order: ArtifactOrder): OrderWorkStatus {
+  return order.status ?? 'pending'
+}
+
+export function countsTowardWorkload(order: ArtifactOrder): boolean {
+  return orderStatus(order) !== 'completed'
+}
+
+export function isActivePending(order: ArtifactOrder): boolean {
+  return orderStatus(order) === 'pending'
+}
+
 export function dueOf(nurse: ArtifactNurse, order: ArtifactOrder): number {
   const base = DUE_BY_ORDER[order.name] ?? ARTIFACT.defaultDueMin
   return Math.max(ARTIFACT.minimumDueMin, base - (nurse.prio ? ARTIFACT.priorityEarlyMin : 0))
@@ -94,8 +112,9 @@ export function loadOf(state: ArtifactState, nurse: ArtifactNurse): WorkloadBrea
     base += (KTAS_LOAD[patient.ktas] ?? 0) + newsLoad(patient.news)
     vsl += vitalLoad(patient)
     for (const order of patient.orders) {
+      if (!countsTowardWorkload(order)) continue
       pend += order.min
-      if (state.t - order.at >= dueOf(nurse, order)) late += 1
+      if (isActivePending(order) && state.t - order.at >= dueOf(nurse, order)) late += 1
     }
   }
   let forecast = base + vsl + pend
@@ -131,7 +150,7 @@ export function capacityOf(state: ArtifactState): CapacityResult {
   return { total, limit, n: assigned.length, level }
 }
 
-export function recommendNurse(state: ArtifactState, targetId: string, exclude: string[] = []): ArtifactNurse | undefined {
+export function eligibleHelpers(state: ArtifactState, targetId: string, exclude: string[] = []): ArtifactNurse[] {
   return state.nurses
     .filter(
       (nurse) =>
@@ -146,7 +165,40 @@ export function recommendNurse(state: ArtifactState, targetId: string, exclude: 
       (a, b) =>
         (levelOf(state, a) === 'ok' ? 0 : 1) - (levelOf(state, b) === 'ok' ? 0 : 1) ||
         (loadOf(state, a)?.now ?? 0) - (loadOf(state, b)?.now ?? 0),
-    )[0]
+    )
+}
+
+export function recommendNurse(state: ArtifactState, targetId: string, exclude: string[] = []): ArtifactNurse | undefined {
+  return eligibleHelpers(state, targetId, exclude)[0]
+}
+
+export function assignmentBlockReason(state: ArtifactState, fromId: string, targetId: string): string | null {
+  if (fromId === targetId) return '본인에게는 지원을 배정할 수 없습니다.'
+  if (!findNurse(state, fromId) || !findNurse(state, targetId)) return '간호사를 찾지 못했습니다.'
+  if (state.supports.some((support) => support.to === targetId && !support.end)) return '이미 응답을 기다리거나 지원이 진행 중입니다.'
+  if (!eligibleHelpers(state, targetId).some((nurse) => nurse.id === fromId)) return '이 간호사는 지금 지원 후보가 아닙니다.'
+  return null
+}
+
+export interface NurseQueueSummary {
+  pendingCount: number
+  maxWaitMin: number
+  acknowledgedCount: number
+  ktas1: number
+  ktas2: number
+}
+
+export function nurseQueue(state: ArtifactState, nurse: ArtifactNurse): NurseQueueSummary {
+  const orders = nurse.patients.flatMap((patient) => patient.orders)
+  const pending = orders.filter((order) => isActivePending(order))
+  const maxWaitMin = pending.reduce((max, order) => Math.max(max, Math.max(0, state.t - order.at)), 0)
+  return {
+    pendingCount: pending.length,
+    maxWaitMin: pending.length ? maxWaitMin : 0,
+    acknowledgedCount: orders.filter((order) => orderStatus(order) === 'acknowledged').length,
+    ktas1: nurse.patients.filter((patient) => patient.ktas === 1).length,
+    ktas2: nurse.patients.filter((patient) => patient.ktas === 2).length,
+  }
 }
 
 export function buildAlerts(state: ArtifactState): AlertItem[] {
@@ -208,26 +260,13 @@ export function buildAlerts(state: ArtifactState): AlertItem[] {
     if (level === 'hi' || help) {
       const since = state.hiSince[nurse.id]
       const sustained = since != null && state.t - since >= ARTIFACT.highSustainedMin
-      const stage = sustained || (load != null && load.late >= (nurse.prio ? ARTIFACT.overdueStage2PriorityCount : ARTIFACT.overdueStage2Count)) ? 2 : 1
-      const why = help
-        ? '"지원 필요" 표시'
-        : stage === 2
-          ? sustained
-            ? "'높음' 30분 이상 지속"
-            : `수행 기준 초과 처방 ${load?.late ?? 0}건`
-          : "업무량 '높음' 도달"
+      const stage = sustained ? 2 : 1
+      const why = help ? '지원 필요 표시' : sustained ? "업무 단계 '높음' 30분 이상" : "업무 단계: 높음"
       list.push({
         st: stage,
         nurse: nurse.id,
-        txt: `${nurse.name} (${nurse.role}), ${why}`,
-        act: stage === 2 ? '근무조 리더간호사, 응급전문간호사: 근무조 지원 또는 환자 재배정' : '근무조 리더간호사: 동료 간 자발적 지원',
-      })
-    } else if (load && load.fc > ARTIFACT.levelHighAbove) {
-      list.push({
-        st: 0,
-        nurse: nurse.id,
-        txt: `${nurse.name}, 1시간 뒤 '높음' 예측 (${load.fc}분)`,
-        act: '선제적 지원 준비',
+        txt: `${nurse.name}, ${why}`,
+        act: stage === 2 ? '지원 또는 환자 재배정 검토' : '동료 지원 검토',
       })
     }
   }
@@ -240,9 +279,16 @@ export function zoneTimeliness(state: ArtifactState): ZoneTimelinessRow[] {
     .filter((nurse) => nurse.patients.length)
     .map((nurse) => {
       const orders = nurse.patients.flatMap((patient) => patient.orders)
-      const maxWaitMin = orders.reduce((max, order) => Math.max(max, state.t - order.at), 0)
-      const overdueCount = orders.filter((order) => state.t - order.at >= dueOf(nurse, order)).length
-      return { zone: nurse.role, pendingCount: orders.length, maxWaitMin, overdueCount }
+      const pending = orders.filter((order) => isActivePending(order))
+      const maxWaitMin = pending.reduce((max, order) => Math.max(max, Math.max(0, state.t - order.at)), 0)
+      const overdueCount = pending.filter((order) => state.t - order.at >= dueOf(nurse, order)).length
+      return {
+        zone: nurse.role,
+        pendingCount: pending.length,
+        maxWaitMin: pending.length ? maxWaitMin : 0,
+        acknowledgedCount: orders.filter((order) => orderStatus(order) === 'acknowledged').length,
+        overdueCount,
+      }
     })
 }
 

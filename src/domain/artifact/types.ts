@@ -2,12 +2,17 @@ export type LevelCode = 'ok' | 'mid' | 'hi'
 export type OrderCategory = 'H' | 'M' | 'L'
 export type AlertStage = 'E' | 0 | 1 | 2 | 3 | 4
 
+export type OrderWorkStatus = 'pending' | 'acknowledged' | 'completed'
+
 export interface ArtifactOrder {
   id: number
   name: string
   at: number
   cat: OrderCategory
   min: number
+  /** 없으면 대기. 이전 저장 상태와 초기 생성 모두 대기로 본다. */
+  status?: OrderWorkStatus
+  acknowledgedAt?: number
 }
 
 export interface ArtifactPatient {
@@ -67,6 +72,15 @@ export interface ArtifactCpr {
   closed: boolean
 }
 
+export type ActivityKind = 'assign' | 'accept' | 'decline' | 'perform' | 'end'
+
+export interface ActivityEntry {
+  id: number
+  t: number
+  kind: ActivityKind
+  text: string
+}
+
 export interface ArtifactState {
   t: number
   view: string
@@ -82,6 +96,7 @@ export interface ArtifactState {
   demoEvent: number
   nurses: ArtifactNurse[]
   seq: number
+  activity: ActivityEntry[]
 }
 
 export interface WorkloadBreakdown {
@@ -116,5 +131,7 @@ export interface ZoneTimelinessRow {
   zone: string
   pendingCount: number
   maxWaitMin: number
+  acknowledgedCount: number
+  /** 임시 수행 기준. 발표 화면에는 표시하지 않는다. */
   overdueCount: number
 }

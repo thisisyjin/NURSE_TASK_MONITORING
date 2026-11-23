@@ -17,10 +17,9 @@
         --hi-soft: #fbe4e2;
         --chip: #eef2f4;
         --f-ui:
-          'IBM Plex Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui,
+          Pretendard, 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui,
           sans-serif;
-        --f-num:
-          'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+        --f-num: Pretendard, 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
       }
       @media (prefers-color-scheme: dark) {
         :root:not([data-theme='light']) {
@@ -579,4 +578,39 @@
         .toast {
           transition: none;
         }
+      }
+      .demo-head { align-items: flex-start; }
+      .head-side { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+      .view-switch { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: var(--muted); font-weight: 700; }
+      .view-switch select { min-width: 220px; font-weight: 700; }
+      .summary-strip { margin-top: 4px; font-size: 13px; }
+      .demo-controls { flex-basis: 100%; display: flex; gap: 6px; flex-wrap: wrap; }
+      .board { display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, 440px); gap: 14px; align-items: start; }
+      .section-title { margin: 0 0 8px; font-size: 16px; }
+      .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .aux { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+      .hero h2 { font-size: 18px; }
+      .rec-card { border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin-top: 8px; background: var(--panel); }
+      .rec-respond { background: var(--accent-soft); }
+      .rec-kicker { font-size: 12px; font-weight: 700; color: var(--accent); }
+      .rec-card h3 { margin: 4px 0; font-size: 18px; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+      .rec-card h3 span { font-size: 13px; font-weight: 600; }
+      .rec-pick strong { display: block; font-size: 22px; margin-top: 2px; }
+      .rec-pick ul { margin: 6px 0 0; padding-left: 18px; }
+      .rec-select, .rec-wait { display: flex; flex-direction: column; gap: 6px; font-size: 12px; margin-top: 8px; }
+      .rec-assign { width: 100%; padding: 8px 10px; }
+      .other-alerts { margin-top: 10px; }
+      .ktas-row { display: flex; gap: 6px; margin-top: 6px; }
+      .pt-toggle { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; text-align: left; background: transparent; border: 0; padding: 0; font: inherit; }
+      .pt-toggle > span { color: var(--muted); font-size: 12px; line-height: 1.4; }
+      .activity { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 12px; }
+      .foot-links { display: flex; gap: 16px; }
+      .text-link { background: none; border: 0; color: var(--accent); padding: 0; text-decoration: underline; cursor: pointer; }
+      .modal-back { position: fixed; inset: 0; background: rgba(24, 34, 43, 0.45); display: flex; align-items: center; justify-content: center; z-index: 30; padding: 16px; }
+      .modal { background: var(--panel); color: var(--ink); width: min(720px, 100%); max-height: min(80vh, 800px); overflow: auto; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+      .compact h2 { font-size: 13px; }
+      @media (max-width: 1100px) {
+        .board { grid-template-columns: 1fr; }
+        .cards, .aux { grid-template-columns: 1fr; }
+        .rail { order: -1; }
       }

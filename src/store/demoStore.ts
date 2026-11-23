@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { ARTIFACT } from '../config/artifactConfig'
 import {
   acceptSupport,
+  acknowledgeOrder,
   assignCprTeam,
   assignSupport,
   completeOrder,
@@ -11,6 +12,7 @@ import {
   endSurge,
   requestAplus,
   resetArtifact,
+  returnOrderToPending,
   spawnOrder,
   stepMinutes,
   toggleHelp,
@@ -43,6 +45,8 @@ export interface DemoStore {
   startCpcr: () => void
   reset: () => void
   performOrder: (ownerId: string, patientId: string, orderId: number, performerId: string) => void
+  acknowledgeOrder: (ownerId: string, patientId: string, orderId: number) => void
+  returnOrder: (ownerId: string, patientId: string, orderId: number) => void
   requestHelp: (nurseId: string) => void
   assignHelper: (from: string, to: string) => void
   acceptAssignment: (from: string) => void
@@ -102,6 +106,8 @@ export const useDemoStore = create<DemoStore>((set, get) => {
       commit(resetArtifact())
     },
     performOrder: (ownerId, patientId, orderId, performerId) => commit(completeOrder(get().board, ownerId, patientId, orderId, performerId)),
+    acknowledgeOrder: (ownerId, patientId, orderId) => commit(acknowledgeOrder(get().board, ownerId, patientId, orderId)),
+    returnOrder: (ownerId, patientId, orderId) => commit(returnOrderToPending(get().board, ownerId, patientId, orderId)),
     requestHelp: (nurseId) => commit(toggleHelp(get().board, nurseId)),
     assignHelper: (from, to) => commit(assignSupport(get().board, from, to)),
     acceptAssignment: (from) => commit(acceptSupport(get().board, from)),

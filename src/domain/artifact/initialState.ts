@@ -5,7 +5,7 @@ import type { ArtifactOrder, ArtifactPatient, ArtifactState } from './types'
 function makeOrder(state: ArtifactState, name: string, at: number): ArtifactOrder {
   const meta = CATALOG_MAP[name]
   state.seq += 1
-  return { id: state.seq, name, at, cat: meta.cat, min: meta.min }
+  return { id: state.seq, name, at, cat: meta.cat, min: meta.min, status: 'pending' }
 }
 
 function makePatient(
@@ -40,6 +40,7 @@ export function createInitialArtifactState(): ArtifactState {
     demoEvent: 0,
     seq: 0,
     nurses: [],
+    activity: [],
   }
   state.nurses = [
     {
