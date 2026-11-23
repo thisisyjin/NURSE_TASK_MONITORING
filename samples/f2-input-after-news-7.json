@@ -1,0 +1,202 @@
+{
+  "scenario": {
+    "id": "news_7_0900",
+    "clock": "09:00"
+  },
+  "nurses": [
+    {
+      "id": "n1",
+      "name": "김서연",
+      "patients": [
+        {
+          "id": "A-01",
+          "ktas": 2,
+          "news": 7,
+          "vital_interval_minutes": 30,
+          "acute_deterioration": false,
+          "orders": [
+            {
+              "id": "o1",
+              "name": "수혈(PRBC)",
+              "status": "pending",
+              "estimated_minutes": 25
+            },
+            {
+              "id": "o2",
+              "name": "채혈",
+              "status": "pending",
+              "estimated_minutes": 10
+            },
+            {
+              "id": "o3",
+              "name": "정맥 항생제",
+              "status": "pending",
+              "estimated_minutes": 10
+            },
+            {
+              "id": "o4",
+              "name": "조영 검사 전 준비",
+              "status": "scheduled",
+              "estimated_minutes": 15
+            }
+          ]
+        },
+        {
+          "id": "A-02",
+          "ktas": 3,
+          "news": 3,
+          "vital_interval_minutes": 60,
+          "acute_deterioration": false,
+          "orders": [
+            {
+              "id": "o5",
+              "name": "수술 전 준비",
+              "status": "pending",
+              "estimated_minutes": 30
+            },
+            {
+              "id": "o6",
+              "name": "정맥 주사(IV push)",
+              "status": "pending",
+              "estimated_minutes": 5
+            }
+          ]
+        },
+        {
+          "id": "A-03",
+          "ktas": 3,
+          "news": 2,
+          "vital_interval_minutes": 60,
+          "acute_deterioration": false,
+          "orders": [
+            {
+              "id": "o7",
+              "name": "경구약",
+              "status": "pending",
+              "estimated_minutes": 3
+            },
+            {
+              "id": "o8",
+              "name": "시술 전 준비(CAG)",
+              "status": "scheduled",
+              "estimated_minutes": 25
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "n2",
+      "name": "박도윤",
+      "patients": [
+        {
+          "id": "B-01",
+          "ktas": 3,
+          "news": 4,
+          "vital_interval_minutes": 60,
+          "acute_deterioration": false,
+          "orders": [
+            {
+              "id": "b1o1",
+              "name": "정맥 주사(IV push)",
+              "status": "pending",
+              "estimated_minutes": 5
+            },
+            {
+              "id": "b1o2",
+              "name": "항생제(패혈성 쇼크)",
+              "status": "pending",
+              "estimated_minutes": 10
+            }
+          ]
+        },
+        {
+          "id": "B-02",
+          "ktas": 4,
+          "news": 1,
+          "vital_interval_minutes": 240,
+          "acute_deterioration": false,
+          "orders": [
+            {
+              "id": "b2o1",
+              "name": "채혈",
+              "status": "scheduled",
+              "estimated_minutes": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "n3",
+      "name": "이하은",
+      "patients": [
+        {
+          "id": "C-01",
+          "ktas": 2,
+          "news": 4,
+          "vital_interval_minutes": 30,
+          "acute_deterioration": false,
+          "orders": [
+            {
+              "id": "c1o1",
+              "name": "도뇨관 삽입",
+              "status": "pending",
+              "estimated_minutes": 15
+            }
+          ]
+        },
+        {
+          "id": "C-02",
+          "ktas": 3,
+          "news": 2,
+          "vital_interval_minutes": 60,
+          "acute_deterioration": false,
+          "orders": [
+            {
+              "id": "c2o1",
+              "name": "채혈",
+              "status": "pending",
+              "estimated_minutes": 10
+            },
+            {
+              "id": "c2o2",
+              "name": "조영 검사 전 준비",
+              "status": "scheduled",
+              "estimated_minutes": 15
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "n4",
+      "name": "최민준",
+      "patients": [
+        {
+          "id": "D-01",
+          "ktas": 4,
+          "news": 0,
+          "vital_interval_minutes": 240,
+          "acute_deterioration": false,
+          "orders": []
+        },
+        {
+          "id": "D-02",
+          "ktas": 5,
+          "news": 0,
+          "vital_interval_minutes": 240,
+          "acute_deterioration": false,
+          "orders": [
+            {
+              "id": "d2o1",
+              "name": "경구약",
+              "status": "pending",
+              "estimated_minutes": 3
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>간호업무량 지원 현황판</title>
+<style>
+:root{
+  --bg:#f3f5f7; --card:#fff; --line:#e3e7eb; --ink:#1d2730; --sub:#66737f; --faint:#9aa5af;
+  --brand:#0e5b6e; --brand-ink:#fff;
+  --low:#2f8a57; --low-bg:#e5f4ea; --mid:#b07a12; --mid-bg:#fbf1dc; --high:#c0362c; --high-bg:#fbe5e2;
+  --info-bg:#e9eef2;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.45 "Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 16px 32px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:12px}
+h1{font-size:20px;margin:0}
+.subt{color:var(--sub);font-size:12px;margin-top:2px}
+.clock{text-align:right}.clock small{display:block;color:var(--sub);font-size:11px}
+.clock b{font:700 24px/1 ui-monospace,Menlo,Consolas,monospace;color:var(--brand)}
+.toolbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:12px}
+.toolbar label{color:var(--sub);font-size:12px}
+select,button{font:inherit;font-size:12px}
+select{padding:4px 6px;border:1px solid var(--line);border-radius:5px;background:#fff}
+button{cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:5px;padding:4px 9px;color:var(--ink)}
+button:hover{background:#f1f4f6}
+button.pri{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+button.pri:hover{filter:brightness(1.1)}
+button.warn{color:var(--high);border-color:#e7a29b}
+button.on{background:#dcebef;border-color:var(--brand)}
+button.xs{padding:1px 7px;font-size:11px}
+.legend{display:flex;gap:10px;align-items:center;color:var(--sub);font-size:11px;margin-left:4px;flex-wrap:wrap}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:3px;vertical-align:middle}
+.main{display:grid;grid-template-columns:1fr 330px;gap:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-content:start}
+@media (max-width:980px){.main{grid-template-columns:1fr}}
+@media (max-width:640px){.grid{grid-template-columns:1fr}header{flex-wrap:wrap}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px;border-top:3px solid var(--line)}
+.card.s-low{border-top-color:var(--low)}.card.s-mid{border-top-color:var(--mid)}.card.s-high{border-top-color:var(--high)}
+.ch{display:flex;justify-content:space-between;align-items:flex-start}
+.name{font-weight:700;font-size:14px}
+.meta{color:var(--sub);font-size:11px}
+.badge{font-size:11px;padding:1px 7px;border-radius:10px;font-weight:600;white-space:nowrap}
+.b-low{background:var(--low-bg);color:var(--low)}.b-mid{background:var(--mid-bg);color:var(--mid)}.b-high{background:var(--high-bg);color:var(--high)}
+.kv{display:flex;justify-content:space-between;font-size:11px;color:var(--sub);margin-top:6px}
+.kv b{color:var(--ink);font-size:12px}
+.bar{position:relative;height:7px;background:#edf0f2;border-radius:4px;margin:4px 0 6px;overflow:hidden}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
+.bar .tick{position:absolute;top:0;bottom:0;width:1px;background:#c5ccd2}
+.tags{display:flex;gap:4px;flex-wrap:wrap;margin:4px 0}
+.tag{font-size:10.5px;padding:1px 6px;border-radius:4px;background:var(--info-bg);color:#3b4b58}
+.tag.r{background:var(--high-bg);color:var(--high)}.tag.y{background:var(--mid-bg);color:var(--mid)}.tag.g{background:var(--low-bg);color:var(--low)}
+.pt{border-top:1px dashed var(--line);margin-top:6px;padding-top:5px}
+.pth{display:flex;justify-content:space-between;font-size:11.5px;font-weight:600}
+.pth span:last-child{font-weight:400;color:var(--sub)}
+.kt{font-size:10px;background:#e7ecf0;border-radius:3px;padding:0 4px;margin-left:3px;font-weight:600}
+.up{color:var(--high);font-weight:700}
+.ord{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:11.5px;padding:2px 0 2px 7px;border-left:2px solid #d5dbe0;margin:3px 0}
+.ord.over{border-left-color:var(--high)}
+.ord .w{color:var(--sub);font-size:10.5px}
+.ord.over .w{color:var(--high);font-weight:600}
+.ord .btns{display:flex;gap:3px;flex-shrink:0}
+.sched{font-size:11px;color:var(--sub);padding-left:9px}
+.cf{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+.muted{color:var(--sub);font-size:11.5px;margin-top:8px}
+.side{display:flex;flex-direction:column;gap:10px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.ph{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.ph b{font-size:13px}.ph span{font-size:10.5px;color:var(--sub)}
+.alert{border-left:3px solid;border-radius:4px;padding:6px 8px;margin:5px 0;font-size:11.5px}
+.alert.a3{border-color:var(--high);background:var(--high-bg)}
+.alert.a2{border-color:#3b5566;background:var(--info-bg)}
+.alert.a1{border-color:var(--mid);background:#fdf6e8}
+.alert .t{font-weight:600}
+.alert .s{color:var(--sub);font-size:10.5px;margin-top:1px}
+.alert .acts{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+table{width:100%;border-collapse:collapse;font-size:11.5px}
+th{text-align:left;color:var(--sub);font-weight:500;font-size:10.5px;border-bottom:1px solid var(--line);padding:3px 2px}
+td{padding:3px 2px;border-bottom:1px solid #f0f2f4}
+td.n{text-align:right}th.n{text-align:right}
+.red{color:var(--high);font-weight:600}.amb{color:var(--mid);font-weight:600}.grn{color:var(--low);font-weight:600}
+.note{margin-top:12px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px;color:var(--sub);font-size:11px}
+.log{max-height:130px;overflow:auto;font-size:11px;color:#3b4b58}
+.log div{padding:2px 0;border-bottom:1px solid #f2f4f6}
+.log time{font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--sub);margin-right:5px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.stat{background:#f6f8f9;border-radius:6px;padding:6px 8px}
+.stat small{display:block;color:var(--sub);font-size:10.5px}.stat b{font-size:15px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>간호업무량 지원 현황판</h1>
+      <div class="subt">응급실 시범 · D 근무 · 가상 데이터 시연</div>
+    </div>
+    <div class="clock"><small>시연 시각</small><b id="clock">09:00</b></div>
+  </header>
+
+  <div class="toolbar">
+    <label for="view">보기</label>
+    <select id="view"></select>
+    <button class="pri" id="btnStep">+15분 진행</button>
+    <button id="btnAuto">자동 진행</button>
+    <button id="btnOrder">처방 발생</button>
+    <button class="warn" id="btnSurge">간호요구 급증</button>
+    <button id="btnReset">초기화</button>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--low)"></i>여유 &lt;30분</span>
+      <span><i class="dot" style="background:var(--mid)"></i>보통 30–50분</span>
+      <span><i class="dot" style="background:var(--high)"></i>높음 &gt;50분</span>
+      <span>막대 옅은 부분 = 1시간 뒤 예측</span>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="grid" id="cards"></div>
+    <div class="side">
+      <div class="panel"><div class="ph"><b>지원 알림</b><span id="alertCount"></span></div><div id="alerts"></div></div>
+      <div class="panel"><div class="ph"><b>지원 기록</b><span>수행자 기준 귀속</span></div><div id="supports"></div></div>
+      <div class="panel"><div class="ph"><b>인력 적정성</b><span>근무조 업무량 대비</span></div><div id="staffing"></div></div>
+      <div class="panel"><div class="ph"><b>처방 적시성</b><span>현재 수행 대기 처방</span></div><div id="timely"></div></div>
+      <div class="panel"><div class="ph"><b>근무 운영 요약</b><span>자동 집계 · 개인별 통계 없음</span></div><div id="summary"></div></div>
+      <div class="panel"><div class="ph"><b>처방 분류 기준</b><span>AI 분류 · 표준 소요시간 초기값</span></div><div id="rules"></div></div>
+      <div class="panel"><div class="ph"><b>이벤트 기록</b><span>자동 기록</span></div><div class="log" id="log"></div></div>
+    </div>
+  </div>
+
+  <div class="note">
+    가상 데이터로 만든 시연판이며 실제 환자·직원 정보는 없습니다.
+    업무량(분) = 환자 상태 관찰 부하(KTAS·NEWS) + 처방된 주기에 따른 활력징후 측정 시간(회당 3분, 1시간 기준) + 수행 대기 처방의 표준 소요시간 합계입니다.
+    환자 상태 악화나 섬망 등으로 간호요구량이 많은 상황이 발생하면 즉시 '높음'으로 표시하고 2단계 지원 알림을 보냅니다.
+    단계 기준(30분·50분), 처방별 소요시간, 활력징후 회당 3분은 시연용 값입니다. 처방 분류와 1시간 뒤 예측은 시연용 규칙으로 계산하며, 실제 운영에서는 원내 AI 플랫폼의 분류·예측 모델과 누적 기록으로 보정합니다.
+    처방 수행 기준은 일반 처방 30분, 패혈성 쇼크 항생제 60분(시연용)이며, 지원 우선 대상 간호사는 기준을 10분 앞당겨 적용합니다. 인력 기준은 환자 담당 간호사 1명당 50분(시연용)입니다.
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const START = 9*60;
+const T_MID = 30, T_HIGH = 50, CAP_PER_RN = 50, SUSTAIN = 15, PRIORITY_ADV = 10, VS_MIN = 3, BAR_MAX = 160;
+
+/* ---------- AI 처방 자동 분류 (시연용 규칙) ---------- */
+const RULES = [
+  {re:/central line/i,          label:'Central line 삽입 준비·보조', min:30},
+  {re:/intubation|기관 삽관/i,   label:'Intubation 준비·보조',        min:30},
+  {re:/수술 전/,                 label:'수술 전 준비',                min:30},
+  {re:/시술 전/,                 label:'시술 전 준비(CAG)',           min:25},
+  {re:/수혈|prbc|ffp/i,          label:'수혈(PRBC)',                  min:25},
+  {re:/a-line/i,                 label:'A-line 삽입 준비·보조',       min:20},
+  {re:/도뇨관/,                  label:'도뇨관 삽입',                 min:15},
+  {re:/조영 검사 전/,            label:'조영 검사 전 준비',           min:15},
+  {re:/항생제/,                  label:'정맥 항생제',                 min:10},
+  {re:/채혈|검체/,               label:'채혈·검체 채취',              min:10},
+  {re:/iv push|정맥 주사|수액/i,  label:'정맥 주사(IV push)·수액',     min:5},
+  {re:/경구/,                    label:'경구약',                      min:3},
+];
+function classify(name){
+  const r = RULES.find(r => r.re.test(name));
+  const min = r ? r.min : 5;
+  return {min, cls: min >= 20 ? '높음' : min >= 10 ? '중간' : '낮음'};
+}
+
+/* ---------- 가상 데이터 ---------- */
+function initialState(){
+  const o = (name, ago, extra={}) => ({id:uid(), name, issuedAt:START-ago, ...classify(name), std: /패혈성/.test(name)?60:30, ...extra});
+  const s = (name, at) => ({id:uid(), name, at});
+  return {
+    now: START,
+    nurses: [
+      {id:'n1', name:'김서연', zone:'1구역', priority:false, needHelp:false, highSince:null, performed:0},
+      {id:'n2', name:'박도윤', zone:'2구역', priority:true,  needHelp:false, highSince:null, performed:0, preceptor:'김서연'},
+      {id:'n3', name:'이하은', zone:'3구역', priority:false, needHelp:false, highSince:null, performed:0},
+      {id:'n4', name:'최민준', zone:'4구역', priority:false, needHelp:false, highSince:null, performed:0},
+      {id:'n5', name:'정유나', role:'Pre-T',   base:'보통', needHelp:false, performed:0},
+      {id:'n6', name:'한지호', role:'물품관리', base:'여유', needHelp:false, performed:0},
+    ],
+    patients: [
+      {bed:'A-01', nurse:'n1', ktas:2, news:6, prevNews:5, vs:30, orders:[o('수혈(PRBC)',40), o('채혈',35), o('정맥 항생제',10)], sched:[s('조영 검사 전 준비',9*60+40)]},
+      {bed:'A-02', nurse:'n1', ktas:3, news:3, prevNews:3, vs:60, orders:[o('수술 전 준비',5), o('정맥 주사(IV push)',5)], sched:[]},
+      {bed:'A-03', nurse:'n1', ktas:3, news:2, prevNews:2, vs:60, orders:[o('경구약',0)], sched:[s('시술 전 준비(CAG)',9*60+30)]},
+      {bed:'B-01', nurse:'n2', ktas:3, news:4, prevNews:4, vs:60, orders:[o('정맥 주사(IV push)',5), o('항생제(패혈성 쇼크)',25)], sched:[]},
+      {bed:'B-02', nurse:'n2', ktas:4, news:1, prevNews:1, vs:240, orders:[], sched:[s('채혈',9*60+20)]},
+      {bed:'C-01', nurse:'n3', ktas:2, news:4, prevNews:4, vs:30, orders:[o('도뇨관 삽입',15)], sched:[]},
+      {bed:'C-02', nurse:'n3', ktas:3, news:2, prevNews:2, vs:60, orders:[o('채혈',5)], sched:[s('조영 검사 전 준비',9*60+50)]},
+      {bed:'D-01', nurse:'n4', ktas:4, news:0, prevNews:0, vs:240, orders:[], sched:[]},
+      {bed:'D-02', nurse:'n4', ktas:5, news:0, prevNews:0, vs:240, orders:[o('경구약',5)], sched:[]},
+    ],
+    supports: [],
+    extraStaff: 0,
+    alertSeen: {},
+    stats: {alerts:0, assigned:0, respSum:0, overdoneDone:0, doneCount:0, waitSum:0, reports:0},
+    log: [],
+    surgeIdx: 0,
+    rng: 20261030,
+    events: [...SCRIPT],
+  };
+}
+let _id = 1; function uid(){ return 'x'+(_id++); }
+
+/* 시간 경과 시나리오 (응급실: 신규 내원 포함) */
+const SCRIPT = [
+  {at:9*60+15, fn:S=>{ setNews(S,'A-01',7); addOrder(S,'B-01','수액 교체'); }},
+  {at:9*60+30, fn:S=>{ setNews(S,'C-01',6); addOrder(S,'A-02','A-line 삽입 준비·보조'); }},
+  {at:9*60+45, fn:S=>{ admit(S,{bed:'D-03', nurse:'n4', ktas:3, news:3, vs:60}, ['채혈','정맥 주사(IV push)']); }},
+  {at:10*60,   fn:S=>{ setNews(S,'B-01',5); addOrder(S,'C-02','정맥 항생제'); }},
+  {at:10*60+15,fn:S=>{ setNews(S,'A-01',6); addOrder(S,'D-01','채혈'); }},
+  {at:10*60+30,fn:S=>{ admit(S,{bed:'B-03', nurse:'n2', ktas:2, news:5, vs:30}, ['채혈','정맥 주사(IV push)','Central line 삽입 준비·보조']); }},
+];
+
+let S;
+function rand(){ S.rng = (S.rng*1103515245+12345) % 2147483648; return S.rng/2147483648; }
+function pt(bed){ return S.patients.find(p=>p.bed===bed); }
+function nurse(id){ return S.nurses.find(n=>n.id===id); }
+function byName(nm){ return S.nurses.find(n=>n.name===nm); }
+function hhmm(m){ m=Math.round(m); return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'); }
+function log(msg){ S.log.unshift({t:S.now,msg}); }
+function setNews(S,bed,v){ const p=pt(bed); if(!p) return; p.prevNews=p.news; p.news=v; log(`${bed} NEWS ${p.prevNews}→${v}`); }
+function addOrder(S,bed,name){
+  const p=pt(bed); if(!p) return;
+  const c=classify(name);
+  p.orders.push({id:uid(), name, issuedAt:S.now, ...c, std:/패혈성/.test(name)?60:30});
+  log(`새 처방 · ${bed} ${name} (AI 분류: ${c.cls}, ${c.min}분)`);
+}
+function admit(S,p,orders){
+  S.patients.push({...p, prevNews:p.news, orders:[], sched:[]});
+  log(`신규 내원 · ${p.bed} KTAS ${p.ktas} → ${nurse(p.nurse).name}`);
+  orders.forEach(o=>addOrder(S,p.bed,o));
+}
+
+/* ---------- 업무량 산출 ---------- */
+function obsLoad(ktas, news){
+  const k = {1:25,2:15,3:8,4:4,5:2}[ktas]||4;
+  const n = news>=7?12 : news>=5?7 : news>=3?3 : 0;
+  return k+n;
+}
+function vsLoad(freq){ return Math.round(60/freq*VS_MIN); }
+function stdFor(o, n){ return o.std - (n && n.priority ? PRIORITY_ADV : 0); }
+function patientsOf(n){ return S.patients.filter(p=>p.nurse===n.id); }
+function isRN(n){ return !n.role; }
+
+function workload(n){
+  if(!isRN(n)){
+    const v = n.base==='보통'?40 : n.base==='높음'?60 : 15;
+    return {total:v, obs:0, vs:0, pend:0, pendN:0, fc:v, surge:false, role:true};
+  }
+  let obs=0, vs=0, pend=0, pendN=0, fc=0, surge=false;
+  for(const p of patientsOf(n)){
+    const o = obsLoad(p.ktas,p.news) + (p.surge?20:0);
+    obs+=o; vs+=vsLoad(p.vs);
+    const pp = p.orders.reduce((a,x)=>a+x.min,0);
+    pend+=pp; pendN+=p.orders.length;
+    if(p.surge) surge=true;
+    // 1시간 뒤 예측: NEWS 추세 반영 + 예정 처방 + 대기 처방 잔존(60% 가정) + 신규 처방 기대값
+    const trend = p.news - p.prevNews;
+    const fNews = Math.max(0, p.news + (trend>0?trend:0));
+    const schedMin = p.sched.filter(s=>s.at<=S.now+60).reduce((a,s)=>a+classify(s.name).min,0);
+    fc += obsLoad(p.ktas,fNews) + (p.surge?20:0) + vsLoad(p.vs) + Math.round(pp*0.6) + schedMin + (p.ktas<=2?8:p.ktas===3?4:1);
+  }
+  return {total:obs+vs+pend, obs, vs, pend, pendN, fc:Math.round(fc), surge};
+}
+function stage(n, w){
+  if(w.surge) return 'high';
+  return w.total>T_HIGH?'high' : w.total>=T_MID?'mid':'low';
+}
+const STG = {low:['여유','b-low','s-low','var(--low)'], mid:['보통','b-mid','s-mid','var(--mid)'], high:['높음','b-high','s-high','var(--high)']};
+function overdue(n){
+  const out=[];
+  for(const p of patientsOf(n)) for(const o of p.orders){
+    const wait=S.now-o.issuedAt; if(wait>stdFor(o,n)) out.push({p,o,wait});
+  }
+  return out;
+}
+
+/* ---------- 인력 적정성 ---------- */
+function staffing(){
+  const rns = S.nurses.filter(isRN).filter(n=>patientsOf(n).length);
+  const total = rns.reduce((a,n)=>a+workload(n).total,0);
+  const cap = (rns.length + S.extraStaff)*CAP_PER_RN;
+  const r = total/cap;
+  return {total, cap, n:rns.length, r, lvl: r>1?'초과': r>0.85?'주의':'적정'};
+}
+
+/* ---------- 지원 단계 판별 ---------- */
+function activeSupportFor(nid){ return S.supports.find(s=>s.target===nid && s.end==null); }
+function supporting(nid){ return S.supports.find(s=>s.supporter===nid && s.end==null); }
+function recommend(targetId){
+  const busy = new Set(S.supports.filter(s=>s.end==null).map(s=>s.supporter));
+  const c = S.nurses.filter(n=>n.id!==targetId && !busy.has(n.id) && !activeSupportFor(n.id))
+    .map(n=>({n, w:workload(n).total, st:stage(n,workload(n))}))
+    .filter(x=>x.st!=='high')
+    .sort((a,b)=>a.w-b.w);
+  return c[0]?.n || null;
+}
+function computeAlerts(){
+  const A=[];
+  const st = staffing();
+  if(st.lvl==='초과') A.push({id:'s3', lv:3, title:`3단계 · 인력 적정성 초과: 근무조 업무량 ${st.total}분 / 인력 기준 ${st.cap}분`, sub:'부서장 보고 및 추가 인력 지원 요청', kind:'staff'});
+  for(const n of S.nurses){
+    const w=workload(n), sg=stage(n,w);
+    if(activeSupportFor(n.id)) continue;
+    const ov=overdue(n);
+    const sustained = n.highSince!=null && S.now-n.highSince>=SUSTAIN;
+    const rec=recommend(n.id);
+    if(w.surge){
+      const p=patientsOf(n).find(p=>p.surge);
+      A.push({id:'s2s-'+n.id, lv:2, title:`2단계 · ${n.name}(${n.zone}) · 간호요구 급증 (${p.bed} ${p.surge})`, sub:'근무조 간호사 지원 또는 환자 재배정', n, rec, kind:'nurse'});
+    } else if(ov.length){
+      A.push({id:'s2o-'+n.id, lv:2, title:`2단계 · ${n.name}(${n.zone ?? n.role}) · 지연 처방 ${ov.length}건${n.priority?' (우선 대상, 기준 10분 앞당김)':''}`, sub:'근무조 간호사 지원 또는 환자 재배정', n, rec, kind:'nurse'});
+    } else if(sg==='high' && sustained){
+      A.push({id:'s2h-'+n.id, lv:2, title:`2단계 · ${n.name}(${n.zone}) · '높음' ${S.now-n.highSince}분 지속`, sub:'근무조 간호사 지원 또는 환자 재배정', n, rec, kind:'nurse'});
+    } else if(sg==='high' || n.needHelp){
+      A.push({id:'s1-'+n.id, lv:1, title:`1단계 · ${n.name}(${n.zone ?? n.role}) · ${n.needHelp?'"지원 필요" 표시':"업무량 '높음' 도달"}`, sub:'동료 간 자발적 지원', n, rec, kind:'nurse'});
+    }
+  }
+  A.sort((a,b)=>b.lv-a.lv);
+  for(const a of A){ if(S.alertSeen[a.id]==null){ S.alertSeen[a.id]=S.now; S.stats.alerts++; } }
+  // 사라진 알림은 다시 발생할 때 새로 집계
+  for(const k of Object.keys(S.alertSeen)) if(!A.find(a=>a.id===k)) delete S.alertSeen[k];
+  return A;
+}
+
+/* ---------- 동작 ---------- */
+function perform(bed, oid, byId){
+  const p=pt(bed), i=p.orders.findIndex(o=>o.id===oid); if(i<0) return;
+  const o=p.orders[i], owner=nurse(p.nurse), by=nurse(byId);
+  const wait=S.now-o.issuedAt, late=wait>stdFor(o,owner);
+  p.orders.splice(i,1);
+  by.performed += o.min;
+  S.stats.doneCount++; S.stats.waitSum+=wait; if(late) S.stats.overdoneDone++;
+  const sup = S.supports.find(s=>s.end==null && s.supporter===byId && s.target===owner.id);
+  if(sup){ sup.count++; sup.min+=o.min; }
+  log(`수행 · ${bed} ${o.name} · 수행자 ${by.name}${by.id!==owner.id?' (지원)':''} · 대기 ${wait}분${late?' · 기준 초과':''}`);
+}
+function assign(targetId, supId, alertId){
+  const t=nurse(targetId), s=nurse(supId); if(!s) return;
+  S.supports.push({id:uid(), supporter:supId, target:targetId, start:S.now, end:null, count:0, min:0});
+  S.stats.assigned++;
+  if(alertId && S.alertSeen[alertId]!=null) S.stats.respSum += S.now-S.alertSeen[alertId];
+  t.needHelp=false;
+  log(`지원 배정 · ${s.name} → ${t.name}`);
+}
+function endSupport(sid){
+  const s=S.supports.find(x=>x.id===sid); if(!s) return;
+  s.end=S.now; log(`지원 종료 · ${nurse(s.supporter).name} → ${nurse(s.target).name} · ${s.end-s.start}분, ${s.count}건`);
+}
+function reassign(targetId, toId){
+  const t=nurse(targetId), to=nurse(toId);
+  if(!isRN(to)){ log(`환자 재배정 불가 · ${to.name}은(는) 환자 담당 역할이 아님`); return; }
+  const ps=patientsOf(t).filter(p=>!p.surge);
+  if(ps.length<2){ log(`환자 재배정 · ${t.name}의 재배정 가능한 환자가 부족함`); return; }
+  const p=ps.sort((a,b)=>b.ktas-a.ktas)[0]; // 가장 안정적인 환자부터
+  p.nurse=toId; log(`환자 재배정 · ${p.bed} ${t.name} → ${to.name}`);
+}
+function surge(){
+  const kinds=['섬망·초조 행동','환자 상태 악화(NEWS 급상승)'];
+  const order=['D-01','A-02','C-02','B-02'];
+  let bed=null;
+  for(let k=0;k<order.length;k++){ const b=order[(S.surgeIdx+k)%order.length]; const p=pt(b); if(p && !p.surge){ bed=b; S.surgeIdx+=k+1; break; } }
+  if(!bed){ log('간호요구 급증 · 모든 시연 환자에 이미 적용됨'); return; }
+  const p=pt(bed), kind=kinds[S.surgeIdx%2];
+  p.surge=kind; p.surgeAt=S.now;
+  if(kind.startsWith('환자 상태')){ p.prevNews=p.news; p.news=Math.max(p.news+4,7); }
+  log(`간호요구 급증 · ${bed} ${kind} → ${nurse(p.nurse).name} 즉시 '높음'`);
+}
+function newRandomOrder(){
+  const pool=['정맥 주사(IV push)','채혈','정맥 항생제','A-line 삽입 준비·보조','Central line 삽입 준비·보조','Intubation 준비·보조','수혈(PRBC)','경구약','도뇨관 삽입','검체 채취(소변)','수술 전 준비','수액 교체'];
+  const ps=S.patients; const p=ps[Math.floor(rand()*ps.length)];
+  addOrder(S,p.bed,pool[Math.floor(rand()*pool.length)]);
+}
+function advance(min){
+  const target=S.now+min;
+  while(S.now<target){
+    S.now++;
+    for(const p of S.patients){
+      const due=p.sched.filter(s=>s.at<=S.now);
+      p.sched=p.sched.filter(s=>s.at>S.now);
+      for(const s of due){ p.orders.push({id:uid(), name:s.name, issuedAt:s.at, ...classify(s.name), std:30}); log(`예정 처방 도래 · ${p.bed} ${s.name}`); }
+    }
+    while(S.events.length && S.events[0].at<=S.now){ S.events.shift().fn(S); }
+    // 지속 '높음' 추적
+    if(S.now%5===0) trackHigh();
+  }
+  trackHigh();
+}
+function trackHigh(){
+  for(const n of S.nurses.filter(isRN)){
+    const sg=stage(n,workload(n));
+    if(sg==='high'){ if(n.highSince==null) n.highSince=S.now; } else n.highSince=null;
+  }
+}
+
+/* ---------- 렌더 ---------- */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function viewer(){ const v=$('view').value; return v==='lead'?null:nurse(v); }
+
+function renderCards(){
+  const me=viewer();
+  $('cards').innerHTML = S.nurses.map(n=>{
+    const w=workload(n), sg=stage(n,w), [lbl,bc,cc,col]=STG[sg];
+    const full = !me || me.id===n.id;
+    const sup=supporting(n.id), got=activeSupportFor(n.id);
+    let h=`<div class="card ${cc}"><div class="ch"><div><div class="name">${esc(n.name)}</div>
+      <div class="meta">${isRN(n)?`${n.zone} · 환자 ${patientsOf(n).length}명`:`${n.role} · 역할 기본 단계`}${full&&n.performed?` · 이번 근무 수행 ${n.performed}분`:''}</div></div>
+      <span class="badge ${bc}">${lbl}</span></div>`;
+    const tags=[];
+    if(n.priority && full) tags.push(`<span class="tag">지원 우선 대상${n.preceptor?' · 프리셉터 '+n.preceptor:''}</span>`);
+    if(n.needHelp) tags.push(`<span class="tag y">"지원 필요" 표시</span>`);
+    if(got) tags.push(`<span class="tag g">지원 받는 중 · ${nurse(got.supporter).name}</span>`);
+    if(sup) tags.push(`<span class="tag g">지원 중 → ${nurse(sup.target).name}</span>`);
+    if(isRN(n)) for(const p of patientsOf(n)) if(p.surge) tags.push(`<span class="tag r">간호요구 급증 · ${p.bed} ${esc(p.surge)}</span>`);
+    const ov = isRN(n)?overdue(n):[];
+    if(full && ov.length) tags.push(`<span class="tag r">수행 기준 초과 ${ov.length}건</span>`);
+
+    if(!isRN(n)){
+      h+= tags.length?`<div class="tags">${tags.join('')}</div>`:'';
+      if(me && me.id!==n.id) h+=`<div class="muted">처방 기반 산출 대상이 아닌 역할입니다.</div>`;
+      h+=`<div class="cf">${(!me||me.id===n.id)?`<button class="xs" data-act="help" data-n="${n.id}">${n.needHelp?'지원 필요 해제':'지원 필요'}</button>`:''}${sup?`<button class="xs" data-act="end" data-s="${sup.id}">지원 종료</button>`:''}</div></div>`;
+      return h;
+    }
+    if(!full){
+      h+= tags.length?`<div class="tags">${tags.filter(t=>!t.includes('우선')).join('')}</div>`:'';
+      h+=`<div class="muted">동료 화면에서는 업무량 단계만 표시됩니다.</div></div>`;
+      return h;
+    }
+    const cur=Math.min(w.total,BAR_MAX)/BAR_MAX*100, fc=Math.min(w.fc,BAR_MAX)/BAR_MAX*100;
+    const fcSg = w.fc>T_HIGH?'high':w.fc>=T_MID?'mid':'low';
+    h+=`<div class="kv"><span>현재 업무량</span><b>${w.total}분</b></div>
+      <div class="kv" style="margin-top:0"><span>관찰 ${w.obs} · 활력 ${w.vs} · 대기 처방 ${w.pend}</span><span>1시간 뒤 <b style="color:${STG[fcSg][3]}">${w.fc}분</b></span></div>
+      <div class="bar">
+        <i style="width:${Math.max(cur,fc)}%;background:${STG[fcSg][3]};opacity:.3"></i>
+        <i style="width:${cur}%;background:${col}"></i>
+        <span class="tick" style="left:${T_MID/BAR_MAX*100}%"></span><span class="tick" style="left:${T_HIGH/BAR_MAX*100}%"></span>
+      </div>`;
+    if(tags.length) h+=`<div class="tags">${tags.join('')}</div>`;
+    for(const p of patientsOf(n)){
+      const tr=p.news-p.prevNews;
+      h+=`<div class="pt"><div class="pth"><span>${p.bed}<span class="kt">KTAS ${p.ktas}</span></span>
+        <span>활력 ${p.vs>=60?p.vs/60+'시간':p.vs+'분'}마다 · NEWS ${p.news}${tr>0?' <span class="up">↑</span>':''}</span></div>`;
+      for(const o of p.orders){
+        const wait=S.now-o.issuedAt, sd=stdFor(o,n), late=wait>sd;
+        h+=`<div class="ord ${late?'over':''}"><span>${esc(o.name)} <span class="w">${o.min}분 · 대기 ${wait}분/기준 ${sd}분</span></span>
+          <span class="btns"><button class="xs" data-act="do" data-b="${p.bed}" data-o="${o.id}" data-by="${n.id}">수행</button>${
+            got && (!me||me.id===got.supporter||!me)?`<button class="xs" data-act="do" data-b="${p.bed}" data-o="${o.id}" data-by="${got.supporter}">${nurse(got.supporter).name} 수행</button>`:''}</span></div>`;
+      }
+      for(const s of p.sched) h+=`<div class="sched">예정: ${esc(s.name)} ${hhmm(s.at)}</div>`;
+      h+=`</div>`;
+    }
+    h+=`<div class="cf"><button class="xs" data-act="help" data-n="${n.id}">${n.needHelp?'지원 필요 해제':'지원 필요'}</button>`;
+    if(!me) h+=`<button class="xs" data-act="prio" data-n="${n.id}">${n.priority?'우선 대상 해제':'우선 대상 지정'}</button>`;
+    if(sup) h+=`<button class="xs" data-act="end" data-s="${sup.id}">지원 종료</button>`;
+    if(p_surge(n)) h+=`<button class="xs" data-act="unsurge" data-n="${n.id}">급증 상황 해제</button>`;
+    h+=`</div></div>`;
+    return h;
+  }).join('');
+}
+function p_surge(n){ return patientsOf(n).some(p=>p.surge); }
+
+function renderSide(alerts){
+  const me=viewer();
+  $('alertCount').textContent = me?'':`${alerts.length}건`;
+  if(me){
+    $('alerts').innerHTML=`<div class="muted" style="margin-top:0">지원 알림은 근무 책임간호사·전문간호사 화면에 표시됩니다. 동료의 업무량 단계는 카드에서 확인할 수 있습니다.</div>`;
+  } else if(!alerts.length){
+    $('alerts').innerHTML=`<div class="muted" style="margin-top:0">현재 지원 알림이 없습니다.</div>`;
+  } else {
+    $('alerts').innerHTML = alerts.map(a=>{
+      const since=S.alertSeen[a.id]; const el= since!=null?S.now-since:0;
+      let acts='';
+      if(a.kind==='staff') acts=`<button class="xs" data-act="report">부서장 보고</button><button class="xs pri" data-act="addstaff">추가 인력 투입</button>`;
+      else if(a.rec) acts=`<button class="xs pri" data-act="assign" data-t="${a.n.id}" data-sp="${a.rec.id}" data-a="${a.id}">${a.rec.name} 지원 배정</button>${a.lv>=2&&isRN(a.rec)?`<button class="xs" data-act="reassign" data-t="${a.n.id}" data-sp="${a.rec.id}">${a.rec.name}에게 환자 재배정</button>`:''}`;
+      else acts=`<span class="s">지원 가능한 인력 없음 → 확대 지원 검토</span>`;
+      return `<div class="alert a${a.lv}"><div class="t">${esc(a.title)}</div><div class="s">${esc(a.sub)}${a.rec&&a.kind!=='staff'?` · 추천: ${a.rec.name}(업무량 최소)`:''} · 발생 ${hhmm(since)} (${el}분 경과)</div><div class="acts">${acts}</div></div>`;
+    }).join('');
+  }
+  // 지원 기록
+  $('supports').innerHTML = S.supports.length ? `<table><tr><th>지원자</th><th>대상</th><th>시작</th><th class="n">시간</th><th class="n">수행</th><th></th></tr>${
+    S.supports.map(s=>`<tr><td>${nurse(s.supporter).name}</td><td>${nurse(s.target).name}</td><td>${hhmm(s.start)}</td>
+      <td class="n">${(s.end??S.now)-s.start}분${s.end==null?' <span class="grn">●</span>':''}</td><td class="n">${s.count}건</td>
+      <td class="n">${s.end==null&&!me?`<button class="xs" data-act="end" data-s="${s.id}">종료</button>`:''}</td></tr>`).join('')}</table>`
+    : `<div class="muted" style="margin-top:0">아직 지원 기록이 없습니다.</div>`;
+  // 인력 적정성
+  const st=staffing(), cls= st.lvl==='초과'?'red':st.lvl==='주의'?'amb':'grn', colr= st.lvl==='초과'?'var(--high)':st.lvl==='주의'?'var(--mid)':'var(--low)';
+  $('staffing').innerHTML=`<div class="kv" style="margin-top:0"><span>근무조 업무량 / 인력 기준</span><b>${st.total}분 / ${st.cap}분</b></div>
+    <div class="bar"><i style="width:${Math.min(st.r,1.3)/1.3*100}%;background:${colr}"></i><span class="tick" style="left:${1/1.3*100}%"></span></div>
+    <div class="kv" style="margin-top:0"><span>환자 담당 ${st.n}명${S.extraStaff?` + 추가 인력 ${S.extraStaff}명`:''} × ${CAP_PER_RN}분 기준</span><span class="badge ${st.lvl==='초과'?'b-high':st.lvl==='주의'?'b-mid':'b-low'}">${st.lvl}</span></div>`;
+  // 처방 적시성
+  const zones={};
+  for(const p of S.patients){ const n=nurse(p.nurse); const z=n.zone; zones[z]=zones[z]||{c:0,max:0,ov:0};
+    for(const o of p.orders){ const w=S.now-o.issuedAt; zones[z].c++; zones[z].max=Math.max(zones[z].max,w); if(w>stdFor(o,n)) zones[z].ov++; } }
+  $('timely').innerHTML=`<table><tr><th>구역</th><th class="n">대기</th><th class="n">최장 대기</th><th class="n">기준 초과</th></tr>${
+    Object.keys(zones).sort().map(z=>`<tr><td>${z}</td><td class="n">${zones[z].c}건</td><td class="n">${zones[z].max}분</td><td class="n ${zones[z].ov?'red':''}">${zones[z].ov}건</td></tr>`).join('')}</table>`;
+  // 운영 요약
+  const k=S.stats;
+  $('summary').innerHTML=`<div class="stats">
+    <div class="stat"><small>지원 알림 발생</small><b>${k.alerts}</b>건</div>
+    <div class="stat"><small>지원 배정</small><b>${k.assigned}</b>건</div>
+    <div class="stat"><small>알림→지원 평균</small><b>${k.assigned?Math.round(k.respSum/k.assigned):'-'}</b>분</div>
+    <div class="stat"><small>처방 평균 대기(수행분)</small><b>${k.doneCount?Math.round(k.waitSum/k.doneCount):'-'}</b>분</div>
+    <div class="stat"><small>기준 초과 후 수행</small><b>${k.overdoneDone}</b>/${k.doneCount}건</div>
+    <div class="stat"><small>누적 지원 시간</small><b>${S.supports.reduce((a,s)=>a+((s.end??S.now)-s.start),0)}</b>분</div></div>`;
+  // 분류 기준
+  $('rules').innerHTML=`<table><tr><th>처방</th><th>분류</th><th class="n">분</th></tr>${
+    RULES.slice(0,9).map(r=>{const c=classify(r.label); return `<tr><td>${r.label}</td><td class="${c.cls==='높음'?'red':c.cls==='중간'?'amb':''}">${c.cls}</td><td class="n">${r.min}</td></tr>`;}).join('')}</table>`;
+  $('log').innerHTML = me ? '<div>이벤트 기록은 근무 책임간호사 화면에서 확인합니다.</div>' : S.log.slice(0,60).map(l=>`<div><time>${hhmm(l.t)}</time>${esc(l.msg)}</div>`).join('') || '<div>기록 없음</div>';
+}
+function render(){
+  trackHigh();
+  $('clock').textContent=hhmm(S.now);
+  const alerts=computeAlerts();
+  renderCards(); renderSide(alerts);
+}
+function buildView(){
+  const v=$('view').value||'lead';
+  $('view').innerHTML=`<option value="lead">근무 책임간호사 (전체)</option>`+S.nurses.map(n=>`<option value="${n.id}">간호사: ${n.name}</option>`).join('');
+  $('view').value=v;
+}
+
+/* ---------- 이벤트 ---------- */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button[data-act]'); if(!b) return;
+  const d=b.dataset;
+  switch(d.act){
+    case 'do': perform(d.b,d.o,d.by); break;
+    case 'help': { const n=nurse(d.n); n.needHelp=!n.needHelp; log(`${n.name} "지원 필요" ${n.needHelp?'표시':'해제'}`); break; }
+    case 'prio': { const n=nurse(d.n); n.priority=!n.priority; log(`${n.name} 지원 우선 대상 ${n.priority?'지정 (수행 기준 10분 앞당김)':'해제'}`); break; }
+    case 'assign': assign(d.t,d.sp,d.a); break;
+    case 'reassign': reassign(d.t,d.sp); break;
+    case 'end': endSupport(d.s); break;
+    case 'unsurge': { for(const p of patientsOf(nurse(d.n))) if(p.surge){ log(`간호요구 급증 해제 · ${p.bed}`); p.surge=null; } break; }
+    case 'report': S.stats.reports++; log('부서장 보고 · 근무조 업무량이 인력 기준 초과'); break;
+    case 'addstaff': S.extraStaff++; log('추가 인력 투입 · 인력 기준 +50분'); break;
+  }
+  render();
+});
+let timer=null;
+$('btnStep').onclick=()=>{ advance(15); render(); };
+$('btnAuto').onclick=()=>{
+  if(timer){ clearInterval(timer); timer=null; $('btnAuto').classList.remove('on'); $('btnAuto').textContent='자동 진행'; return; }
+  timer=setInterval(()=>{ advance(5); if(rand()<0.25) newRandomOrder(); render(); },2000);
+  $('btnAuto').classList.add('on'); $('btnAuto').textContent='자동 진행 중지';
+};
+$('btnOrder').onclick=()=>{ newRandomOrder(); render(); };
+$('btnSurge').onclick=()=>{ surge(); render(); };
+$('btnReset').onclick=()=>{ if(timer) $('btnAuto').click(); _id=1; S=initialState(); log('시연 시작 · 응급실 D 근무'); buildView(); $('view').value='lead'; render(); };
+$('view').onchange=render;
+
+S=initialState(); log('시연 시작 · 응급실 D 근무'); buildView(); render();
+})();
+</script>
+</body>
+</html>

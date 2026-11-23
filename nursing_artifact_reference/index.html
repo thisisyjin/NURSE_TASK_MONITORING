@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>간호업무량 실시간 간호지원체계 - 시연 원본</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap" />
+  <link rel="stylesheet" href="./app.css" />
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+<div>
+<h1>간호업무량 실시간 간호지원체계</h1>
+<div class="sub">응급실 시범 · D 근무 · 가상 데이터 시연</div>
+</div>
+<div aria-live="polite" class="clock">
+<small>시연 시각</small><span id="clock">09:00</span>
+</div>
+</header>
+<div aria-label="시연 조작" class="bar" role="toolbar">
+<div class="grp">
+<label class="lbl" for="viewSel">보기</label>
+<select id="viewSel">
+<option selected="" value="leader">근무조 리더간호사 (전체)</option>
+<option value="np">응급전문간호사 (전체)</option>
+<option value="n1">간호사: 김서연</option>
+<option value="n2">간호사: 박도윤</option>
+<option value="n3">간호사: 이하은</option>
+<option value="n4">간호사: 최민준</option>
+<option value="n5">간호사: 정유나</option>
+<option value="n6">간호사: 한지호</option>
+</select>
+</div>
+<div class="sep"></div>
+<div class="grp">
+<button class="pri" id="btnStep">+15분 진행</button>
+<button aria-pressed="false" id="btnAuto">자동 진행</button>
+<button id="btnOrder">처방 발생</button>
+<button class="warn" id="btnEvent">간호요구 급증</button>
+<button class="warn" id="btnCPCR">CPCR 발생</button>
+<button id="btnReset">초기화</button>
+</div>
+<div class="sep"></div>
+<div class="legend">
+<span><i class="dot s-ok"></i>여유 &lt;30분</span>
+<span><i class="dot s-mid"></i>보통 30–50분</span>
+<span><i class="dot s-hi"></i>높음 &gt;50분</span>
+<span>막대 옅은 부분 = 1시간 뒤 예측</span>
+</div>
+</div>
+<div class="main">
+<section aria-label="간호사별 업무량" class="cards" id="cards">
+<article class="card">
+<div class="stripe s-hi"></div>
+<div class="hd">
+<div>
+<div class="name">김서연</div>
+<div class="role">1구역 · 환자 3명</div>
+</div>
+<span class="lvl l-hi">높음</span>
+</div>
+<div class="meter">
+<div class="mrow"><span>현재 업무량</span><b>127분</b></div>
+<div class="mrow">
+<span>관찰 40 · 활력 4 · 대기 처방 83</span><span>1시간 뒤 <b>167분</b></span>
+</div>
+<div aria-hidden="true" class="track">
+<i class="fc s-hi" style="width: 100%"></i><i class="s-hi" style="width: 100%"></i><span class="tick" style="left: 37.5%"></span><span class="tick" style="left: 62.5%"></span>
+</div>
+</div>
+<div class="flags">
+<span class="chip hi">수행 기준 초과 2건</span>
+</div>
+<div class="pts">
+<div class="pt">
+<div class="pth">
+<b>1-01 김가온 <span class="ktas">KTAS 2</span></b><span>활력 2시간마다 · NEWS
+                    <span class="news-up">6 ↑ (주의 → 위험)</span></span>
+</div>
+<div class="pid">1구역 01병상 · 41013827</div>
+<div class="ord late">
+<span>수혈(PRBC)
+                    <span class="w">25분 · 대기 40/기준 30분</span></span><span class="acts"><button class="sm" data-act="do" data-by="n1" data-n="n1" data-o="1" data-p="1-01">
+                      수행
+                    </button></span>
+</div>
+<div class="ord late">
+<span>채혈 <span class="w">10분 · 대기 35/기준 30분</span></span><span class="acts"><button class="sm" data-act="do" data-by="n1" data-n="n1" data-o="2" data-p="1-01">
+                      수행
+                    </button></span>
+</div>
+<div class="ord">
+<span>정맥 항생제
+                    <span class="w">10분 · 대기 10/기준 30분</span></span><span class="acts"><button class="sm" data-act="do" data-by="n1" data-n="n1" data-o="3" data-p="1-01">
+                      수행
+                    </button></span>
+</div>
+<div class="ord">
+<span>예정: 조영 검사 전 준비 <span class="w">09:40</span></span>
+</div>
+</div>
+<div class="pt">
+<div class="pth">
+<b>1-02 이나래 <span class="ktas">KTAS 3</span></b><span>활력 4시간마다 · NEWS <span class="">3</span></span>
+</div>
+<div class="pid">1구역 02병상 · 41025164</div>
+<div class="ord">
+<span>수술 전 준비
+                    <span class="w">30분 · 대기 5/기준 30분</span></span><span class="acts"><button class="sm" data-act="do" data-by="n1" data-n="n1" data-o="4" data-p="1-02">
+                      수행
+                    </button></span>
+</div>
+<div class="ord">
+<span>정맥 주사(IV push)
+                    <span class="w">5분 · 대기 5/기준 30분</span></span><span class="acts"><button class="sm" data-act="do" data-by="n1" data-n="n1" data-o="5" data-p="1-02">
+                      수행
+                    </button></span>
+</div>
+</div>
+<div class="pt">
+<div class="pth">
+<b>1-03 박도담 <span class="ktas">KTAS 3</span></b><span>활력 4시간마다 · NEWS <span class="">2</span></span>
+</div>
+<div class="pid">1구역 03병상 · 41039402</div>
+<div class="ord">
+<span>경구약 <span class="w">3분 · 대기 0/기준 30분</span></span><span class="acts"><button class="sm" data-act="do" data-by="n1" data-n="n1" data-o="6" data-p="1-03">
+                      수행
+                    </button></span>
+</div>
+<div class="ord">
+<span>예정: 시술 전 준비(CAG) <span class="w">09:30</span></span>
+</div>
+</div>
+</div>
+<div class="ft">
+<button class="sm" data-act="help" data-n="n1">지원 필요</button><button class="sm" data-act="prio" data-n="n1">
+                우선 대상 지정</button><span class="grow"></span>
+</div>
+</article>
+<article class="card">
+<div class="stripe s-mid"></div>
+<div class="hd">
+<div>
+<div class="name">박도윤</div>
+<div class="role">2구역 · 환자 2명</div>
+</div>
+<span class="lvl l-mid">보통</span>
+</div>
+<div class="meter">
+<div class="mrow"><span>현재 업무량</span><b>31분</b></div>
+<div class="mrow">
+<span>관찰 15 · 활력 1 · 대기 처방 15</span><span>1시간 뒤 <b>41분</b></span>
+</div>
+<div aria-hidden="true" class="track">
+<i class="fc s-mid" style="width: 51.24999999999999%"></i><i class="s-mid" style="width: 38.75%"></i><span class="tick" style="left: 37.5%"></span><span class="tick" style="left: 62.5%"></span>
+</div>
+</div>
+<div class="flags"><span class="chip ac">지원 우선 대상</span></div>
+<div class="pts">
+<div class="pt">
+<div class="pth">
+<b>2-01 최하람 <span class="ktas">KTAS 3</span></b><span>활력 4시간마다 · NEWS <span class="">4</span></span>
+</div>
+<div class="pid">2구역 01병상 · 42017735</div>
+<div class="ord">
+<span>정맥 주사(IV push)
+                    <span class="w">5분 · 대기 5/기준 20분</span></span><span class="acts"><button class="sm" data-act="do" data-by="n2" data-n="n2" data-o="7" data-p="2-01">
+                      수행
+                    </button></span>
+</div>
+<div class="ord">
+<span>항생제(패혈성 쇼크)
+                    <span class="w">10분 · 대기 25/기준 50분</span></span><span class="acts"><button class="sm" data-act="do" data-by="n2" data-n="n2" data-o="8" data-p="2-01">
+                      수행
+                    </button></span>
+</div>
+</div>
+<div class="pt">
+<div class="pth">
+<b>2-02 정새봄 <span class="ktas">KTAS 4</span></b><span>활력 8시간마다 · NEWS <span class="">1</span></span>
+</div>
+<div class="pid">2구역 02병상 · 42026018</div>
+<div class="ord">
+<span>예정: 채혈 <span class="w">09:20</span></span>
+</div>
+</div>
+</div>
+<div class="ft">
+<button class="sm" data-act="help" data-n="n2">지원 필요</button><button class="sm" data-act="prio" data-n="n2">
+                우선 대상 해제</button><span class="grow"></span>
+</div>
+</article>
+<article class="card">
+<div class="stripe s-hi"></div>
+<div class="hd">
+<div>
+<div class="name">이하은</div>
+<div class="role">3구역 · 환자 2명</div>
+</div>
+<span class="lvl l-hi">높음</span>
+</div>
+<div class="meter">
+<div class="mrow"><span>현재 업무량</span><b>53분</b></div>
+<div class="mrow">
+<span>관찰 25 · 활력 3 · 대기 처방 25</span><span>1시간 뒤 <b>63분</b></span>
+</div>
+<div aria-hidden="true" class="track">
+<i class="fc s-hi" style="width: 78.75%"></i><i class="s-hi" style="width: 66.25%"></i><span class="tick" style="left: 37.5%"></span><span class="tick" style="left: 62.5%"></span>
+</div>
+</div>
+<div class="flags"></div>
+<div class="pts">
+<div class="pt">
+<div class="pth">
+<b>3-01 강다온 <span class="ktas">KTAS 2</span></b><span>활력 2시간마다 · NEWS <span class="">4</span></span>
+</div>
+<div class="pid">3구역 01병상 · 43018841</div>
+<div class="ord">
+<span>도뇨관 삽입
+                    <span class="w">15분 · 대기 15/기준 30분</span></span><span class="acts"><button class="sm" data-act="do" data-by="n3" data-n="n3" data-o="9" data-p="3-01">
+                      수행
+                    </button></span>
+</div>
+</div>
+<div class="pt">
+<div class="pth">
+<b>3-02 윤보람 <span class="ktas">KTAS 3</span></b><span>활력 4시간마다 · NEWS <span class="">2</span></span>
+</div>
+<div class="pid">3구역 02병상 · 43023376</div>
+<div class="ord">
+<span>채혈 <span class="w">10분 · 대기 5/기준 30분</span></span><span class="acts"><button class="sm" data-act="do" data-by="n3" data-n="n3" data-o="10" data-p="3-02">
+                      수행
+                    </button></span>
+</div>
+<div class="ord">
+<span>예정: 조영 검사 전 준비 <span class="w">09:50</span></span>
+</div>
+</div>
+</div>
+<div class="ft">
+<button class="sm" data-act="help" data-n="n3">지원 필요</button><button class="sm" data-act="prio" data-n="n3">
+                우선 대상 지정</button><span class="grow"></span>
+</div>
+</article>
+<article class="card">
+<div class="stripe s-ok"></div>
+<div class="hd">
+<div>
+<div class="name">최민준</div>
+<div class="role">5구역 · 환자 2명</div>
+</div>
+<span class="lvl l-ok">여유</span>
+</div>
+<div class="meter">
+<div class="mrow"><span>현재 업무량</span><b>11분</b></div>
+<div class="mrow">
+<span>관찰 8 · 활력 0 · 대기 처방 3</span><span>1시간 뒤 <b>11분</b></span>
+</div>
+<div aria-hidden="true" class="track">
+<i class="fc s-ok" style="width: 13.750000000000002%"></i><i class="s-ok" style="width: 13.750000000000002%"></i><span class="tick" style="left: 37.5%"></span><span class="tick" style="left: 62.5%"></span>
+</div>
+</div>
+<div class="flags"></div>
+<div class="pts">
+<div class="pt">
+<div class="pth">
+<b>5-01 장누리 <span class="ktas">KTAS 4</span></b><span>활력 8시간마다 · NEWS <span class="">0</span></span>
+</div>
+<div class="pid">5구역 01병상 · 45015290</div>
+</div>
+<div class="pt">
+<div class="pth">
+<b>5-02 임한결 <span class="ktas">KTAS 5</span></b><span>활력 8시간마다 · NEWS <span class="">0</span></span>
+</div>
+<div class="pid">5구역 02병상 · 45027463</div>
+<div class="ord">
+<span>경구약 <span class="w">3분 · 대기 5/기준 30분</span></span><span class="acts"><button class="sm" data-act="do" data-by="n4" data-n="n4" data-o="11" data-p="5-02">
+                      수행
+                    </button></span>
+</div>
+</div>
+</div>
+<div class="ft">
+<button class="sm" data-act="help" data-n="n4">지원 필요</button><button class="sm" data-act="prio" data-n="n4">
+                우선 대상 지정</button><span class="grow"></span>
+</div>
+</article>
+<article class="card">
+<div class="stripe s-mid"></div>
+<div class="hd">
+<div>
+<div class="name">정유나</div>
+<div class="role">6구역 · 환자 6명</div>
+</div>
+<span class="lvl l-mid">보통</span>
+</div>
+<div class="meter">
+<div class="mrow"><span>현재 업무량</span><b>34분</b></div>
+<div class="mrow">
+<span>관찰 26 · 활력 0 · 대기 처방 8</span><span>1시간 뒤 <b>44분</b></span>
+</div>
+<div aria-hidden="true" class="track">
+<i class="fc s-mid" style="width: 55.00000000000001%"></i><i class="s-mid" style="width: 42.5%"></i><span class="tick" style="left: 37.5%"></span><span class="tick" style="left: 62.5%"></span>
+</div>
+</div>
+<div class="flags"></div>
+<div class="pts">
+<div class="pt">
+<div class="pth">
+<b>6-01 한바다 <span class="ktas">KTAS 4</span></b><span>활력 8시간마다 · NEWS <span class="">0</span></span>
+</div>
+<div class="pid">6구역 · 46012958</div>
+<div class="ord">
+<span>수액 교체
+                    <span class="w">5분 · 대기 10/기준 30분</span></span><span class="acts"><button class="sm" data-act="do" data-by="n5" data-n="n5" data-o="12" data-p="6-01">
+                      수행
+                    </button></span>
+</div>
+</div>
+<div class="pt">
+<div class="pth">
+<b>6-02 문가윤 <span class="ktas">KTAS 4</span></b><span>활력 8시간마다 · NEWS <span class="">1</span></span>
+</div>
+<div class="pid">6구역 · 46024107</div>
+</div>
+<div class="pt">
+<div class="pth">
+<b>6-03 배시온 <span class="ktas">KTAS 5</span></b><span>활력 8시간마다 · NEWS <span class="">0</span></span>
+</div>
+<div class="pid">6구역 · 46036682</div>
+<div class="ord">
+<span>경구약 <span class="w">3분 · 대기 5/기준 30분</span></span><span class="acts"><button class="sm" data-act="do" data-by="n5" data-n="n5" data-o="13" data-p="6-03">
+                      수행
+                    </button></span>
+</div>
+</div>
+<div class="pt">
+<div class="pth">
+<b>6-04 조하늘 <span class="ktas">KTAS 4</span></b><span>활력 8시간마다 · NEWS <span class="">2</span></span>
+</div>
+<div class="pid">6구역 · 46041539</div>
+<div class="ord">
+<span>예정: 채혈 <span class="w">09:30</span></span>
+</div>
+</div>
+<div class="pt">
+<div class="pth">
+<b>6-05 홍다빈 <span class="ktas">KTAS 4</span></b><span>활력 8시간마다 · NEWS <span class="">1</span></span>
+</div>
+<div class="pid">6구역 · 46058274</div>
+</div>
+<div class="pt">
+<div class="pth">
+<b>6-06 류지안 <span class="ktas">KTAS 5</span></b><span>활력 8시간마다 · NEWS <span class="">0</span></span>
+</div>
+<div class="pid">6구역 · 46063915</div>
+</div>
+</div>
+<div class="ft">
+<button class="sm" data-act="help" data-n="n5">지원 필요</button><button class="sm" data-act="prio" data-n="n5">
+                우선 대상 지정</button><span class="grow"></span>
+</div>
+</article>
+<article class="card">
+<div class="stripe s-ok"></div>
+<div class="hd">
+<div>
+<div class="name">한지호</div>
+<div class="role">소생실 · 대기 (환자 없음)</div>
+</div>
+<span class="lvl l-ok">여유</span>
+</div>
+<div class="flags"></div>
+<div class="ft">
+<button class="sm" data-act="help" data-n="n6">지원 필요</button><span class="grow"></span>
+</div>
+</article>
+</section>
+<aside class="rail">
+<div class="box">
+<h2>지원 알림 <span id="alertCount">3건</span></h2>
+<div id="alerts">
+<div class="alert a3">
+<div>
+<span class="st">3단계</span> · 인력 적정성 초과: 근무조
+                  업무량 256분 / 인력 기준 250분
+                </div>
+<div class="row">
+<span class="empty">간호관리자 보고 및 추가 인력 지원 요청</span>
+</div>
+</div>
+<div class="alert a2">
+<div>
+<span class="st">2단계</span> · 김서연 (1구역) · 수행 기준
+                  초과 처방 2건
+                </div>
+<div class="row">
+<span class="empty">근무조 리더간호사·응급전문간호사: 근무조 지원 또는 환자
+                    재배정</span><button class="sm pri" data-act="assign" data-from="n6" data-to="n1">
+                    한지호 지원 배정
+                  </button>
+</div>
+</div>
+<div class="alert a1">
+<div>
+<span class="st">1단계</span> · 이하은 (3구역) · 업무량 '높음'
+                  도달
+                </div>
+<div class="row">
+<span class="empty">근무조 리더간호사: 동료 간 자발적 지원</span><button class="sm pri" data-act="assign" data-from="n6" data-to="n3">
+                    한지호 지원 배정
+                  </button>
+</div>
+</div>
+</div>
+</div>
+<div class="box">
+<h2>지원 기록 <span>수행자 기준 귀속</span></h2>
+<div class="scroll">
+<table id="supTbl">
+<thead>
+<tr>
+<th>지원자</th>
+<th>대상 (역할)</th>
+<th>시작</th>
+<th class="n">시간</th>
+<th class="n">수행</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="empty" colspan="5">
+                      아직 지원 기록이 없습니다.
+                    </td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="box">
+<h2>인력 적정성 <span>근무조 업무량 대비</span></h2>
+<div id="capBox">
+<div class="mrow">
+<span>근무조 업무량 / 인력 기준</span><b>256분 / 250분</b>
+</div>
+<div aria-hidden="true" class="track">
+<i class="s-hi" style="width: 73.14285714285714%"></i><span class="tick" style="left: 71.42857142857143%"></span>
+</div>
+<div class="mrow" style="margin-top: 6px">
+<span>환자 담당 5명 × 50분 (시연 기준)</span><span class="lvl l-hi">초과</span>
+</div>
+</div>
+</div>
+<div class="box">
+<h2>처방 적시성 <span>현재 수행 대기 처방</span></h2>
+<div class="scroll">
+<table id="dueTbl">
+<thead>
+<tr>
+<th>구역</th>
+<th class="n">대기</th>
+<th class="n">최장 대기</th>
+<th class="n">기준 초과</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1구역</td>
+<td class="n">6건</td>
+<td class="n">40분</td>
+<td class="n" style="color: var(--hi)">2건</td>
+</tr>
+<tr>
+<td>2구역</td>
+<td class="n">2건</td>
+<td class="n">25분</td>
+<td class="n" style="color: inherit">0건</td>
+</tr>
+<tr>
+<td>3구역</td>
+<td class="n">2건</td>
+<td class="n">15분</td>
+<td class="n" style="color: inherit">0건</td>
+</tr>
+<tr>
+<td>5구역</td>
+<td class="n">1건</td>
+<td class="n">5분</td>
+<td class="n" style="color: inherit">0건</td>
+</tr>
+<tr>
+<td>6구역</td>
+<td class="n">2건</td>
+<td class="n">10분</td>
+<td class="n" style="color: inherit">0건</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="box">
+<h2>처방 분류 기준 <span>표준 소요시간 초기값</span></h2>
+<div class="scroll">
+<table id="catTbl">
+<thead>
+<tr>
+<th>처방</th>
+<th>분류</th>
+<th class="n">분</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPR 진행</td>
+<td class="cat-h">높음</td>
+<td class="n">42</td>
+</tr>
+<tr>
+<td>Central line 삽입 준비·보조</td>
+<td class="cat-h">높음</td>
+<td class="n">30</td>
+</tr>
+<tr>
+<td>Intubation 준비·보조</td>
+<td class="cat-h">높음</td>
+<td class="n">30</td>
+</tr>
+<tr>
+<td>수술 전 준비</td>
+<td class="cat-h">높음</td>
+<td class="n">30</td>
+</tr>
+<tr>
+<td>시술 전 준비(CAG)</td>
+<td class="cat-h">높음</td>
+<td class="n">25</td>
+</tr>
+<tr>
+<td>수혈(PRBC)</td>
+<td class="cat-h">높음</td>
+<td class="n">25</td>
+</tr>
+<tr>
+<td>A-line 삽입 준비·보조</td>
+<td class="cat-h">높음</td>
+<td class="n">20</td>
+</tr>
+<tr>
+<td>도뇨관 삽입</td>
+<td class="cat-m">중간</td>
+<td class="n">15</td>
+</tr>
+<tr>
+<td>중환자실 입원 준비</td>
+<td class="cat-m">중간</td>
+<td class="n">15</td>
+</tr>
+<tr>
+<td>정맥 항생제</td>
+<td class="cat-m">중간</td>
+<td class="n">10</td>
+</tr>
+<tr>
+<td>항생제(패혈성 쇼크)</td>
+<td class="cat-m">중간</td>
+<td class="n">10</td>
+</tr>
+<tr>
+<td>승압제 투여 시작</td>
+<td class="cat-m">중간</td>
+<td class="n">10</td>
+</tr>
+<tr>
+<td>채혈</td>
+<td class="cat-m">중간</td>
+<td class="n">10</td>
+</tr>
+<tr>
+<td>조영 검사 전 준비</td>
+<td class="cat-m">중간</td>
+<td class="n">10</td>
+</tr>
+<tr>
+<td>정맥 주사(IV push)</td>
+<td class="cat-l">낮음</td>
+<td class="n">5</td>
+</tr>
+<tr>
+<td>에피네프린 투여</td>
+<td class="cat-l">낮음</td>
+<td class="n">5</td>
+</tr>
+<tr>
+<td>수액 교체</td>
+<td class="cat-l">낮음</td>
+<td class="n">5</td>
+</tr>
+<tr>
+<td>경구약</td>
+<td class="cat-l">낮음</td>
+<td class="n">3</td>
+</tr>
+<tr>
+<td>활력징후 측정</td>
+<td>처방 주기별</td>
+<td class="n">회당 3</td>
+</tr>
+<tr>
+<td>
+                      간호요구 급증 (환자 상태 악화, 섬망·초조 행동, CPCR)
+                    </td>
+<td class="cat-h">즉시 높음</td>
+<td class="n">–</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</aside>
+</div>
+<div class="note">
+        가상 데이터로 만든 시연판이며 실제 환자·직원 정보는 없습니다. 환자명은
+        가상 이름이고 등록번호(8자리)도 가상 번호입니다. 업무량(분) = 환자 상태
+        관찰 부하(KTAS·NEWS) + 처방된 주기에 따른 활력징후 측정 시간 + 수행 대기
+        처방의 표준 소요시간 합계입니다. NEWS ↑는 이전보다 위험 단계(양호 0–1,
+        주의 2–4, 위험 5–6, 고위험 7 이상)가 올라갔을 때 표시합니다. 소생실은
+        비어 있다가 09:30에 CPCR 환자 1명이 내원합니다(+15분 진행 2회, 또는
+        'CPCR 발생' 버튼으로 바로 시작). 환자 상태 악화·섬망·CPCR 등으로
+        간호요구량이 많은 상황이 생기면 담당 간호사를 즉시 '높음'으로 표시하고
+        사유를 함께 보여줍니다. 화면 보기: 근무조 리더간호사·응급전문간호사는
+        전체를 보고, 담당간호사는 본인 상세와 동료의 단계만 봅니다. 지원 배정을
+        수락한 간호사는 지원 대상 간호사의 화면을 함께 봅니다. 단계
+        기준(30분·50분), 처방별 소요시간, 활력징후 회당 3분, 처방 수행 기준(일반
+        30분, 패혈성 쇼크 항생제 60분)은 시연용 값입니다. 지원 우선 대상
+        간호사는 기준을 10분 앞당겨 적용합니다. 인력 기준은 시연에서 근무 간호사
+        1명당 50분으로 계산합니다. '담당 환자 1명당 50분' 기준의 적용 방식은
+        개발팀과 협의 중입니다.
+      </div>
+</div>
+
+
+<div class="toast" id="toast" role="status"></div>
+  <script src="./app.js"></script>
+</body>
+</html>

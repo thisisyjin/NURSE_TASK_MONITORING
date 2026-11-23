@@ -1,0 +1,147 @@
+{
+  "scenario": {
+    "id": "event_0915",
+    "clock": "09:15"
+  },
+  "nurses": [
+    {
+      "nurse_id": "n1",
+      "nurse_name": "김서연",
+      "patient_count": 3,
+      "observation_minutes": 46,
+      "vital_minutes": 12,
+      "pending_order_minutes": 83,
+      "total_minutes": 141,
+      "workload_level": "높음",
+      "has_acute_deterioration": false,
+      "patient_reference_minutes": 150,
+      "exceeds_patient_reference": false,
+      "unfinished_order_count": 6,
+      "patient_breakdown": [
+        {
+          "patient_id": "A-01",
+          "observation_minutes": 27,
+          "vital_minutes": 6,
+          "pending_order_minutes": 45,
+          "unfinished_order_count": 3
+        },
+        {
+          "patient_id": "A-02",
+          "observation_minutes": 11,
+          "vital_minutes": 3,
+          "pending_order_minutes": 35,
+          "unfinished_order_count": 2
+        },
+        {
+          "patient_id": "A-03",
+          "observation_minutes": 8,
+          "vital_minutes": 3,
+          "pending_order_minutes": 3,
+          "unfinished_order_count": 1
+        }
+      ]
+    },
+    {
+      "nurse_id": "n2",
+      "nurse_name": "박도윤",
+      "patient_count": 2,
+      "observation_minutes": 15,
+      "vital_minutes": 4,
+      "pending_order_minutes": 20,
+      "total_minutes": 39,
+      "workload_level": "보통",
+      "has_acute_deterioration": false,
+      "patient_reference_minutes": 100,
+      "exceeds_patient_reference": false,
+      "unfinished_order_count": 3,
+      "patient_breakdown": [
+        {
+          "patient_id": "B-01",
+          "observation_minutes": 11,
+          "vital_minutes": 3,
+          "pending_order_minutes": 20,
+          "unfinished_order_count": 3
+        },
+        {
+          "patient_id": "B-02",
+          "observation_minutes": 4,
+          "vital_minutes": 1,
+          "pending_order_minutes": 0,
+          "unfinished_order_count": 0
+        }
+      ]
+    },
+    {
+      "nurse_id": "n3",
+      "nurse_name": "이하은",
+      "patient_count": 2,
+      "observation_minutes": 26,
+      "vital_minutes": 9,
+      "pending_order_minutes": 25,
+      "total_minutes": 60,
+      "workload_level": "높음",
+      "has_acute_deterioration": false,
+      "patient_reference_minutes": 100,
+      "exceeds_patient_reference": false,
+      "unfinished_order_count": 2,
+      "patient_breakdown": [
+        {
+          "patient_id": "C-01",
+          "observation_minutes": 18,
+          "vital_minutes": 6,
+          "pending_order_minutes": 15,
+          "unfinished_order_count": 1
+        },
+        {
+          "patient_id": "C-02",
+          "observation_minutes": 8,
+          "vital_minutes": 3,
+          "pending_order_minutes": 10,
+          "unfinished_order_count": 1
+        }
+      ]
+    },
+    {
+      "nurse_id": "n4",
+      "nurse_name": "최민준",
+      "patient_count": 2,
+      "observation_minutes": 6,
+      "vital_minutes": 2,
+      "pending_order_minutes": 3,
+      "total_minutes": 11,
+      "workload_level": "여유",
+      "has_acute_deterioration": false,
+      "patient_reference_minutes": 100,
+      "exceeds_patient_reference": false,
+      "unfinished_order_count": 1,
+      "patient_breakdown": [
+        {
+          "patient_id": "D-01",
+          "observation_minutes": 4,
+          "vital_minutes": 1,
+          "pending_order_minutes": 0,
+          "unfinished_order_count": 0
+        },
+        {
+          "patient_id": "D-02",
+          "observation_minutes": 2,
+          "vital_minutes": 1,
+          "pending_order_minutes": 3,
+          "unfinished_order_count": 1
+        }
+      ]
+    }
+  ],
+  "shift_summary": {
+    "nurse_count": 4,
+    "patient_count": 9,
+    "observation_minutes": 93,
+    "vital_minutes": 27,
+    "pending_order_minutes": 131,
+    "total_minutes": 251,
+    "unfinished_order_count": 12,
+    "patient_reference_minutes": 450,
+    "exceeds_patient_reference": false
+  },
+  "calculation_version": "html_demo_f2_v3_batch"
+}
