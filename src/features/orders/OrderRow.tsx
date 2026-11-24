@@ -21,22 +21,22 @@ export function OrderRow({ ownerId, patientId, order, nowMin, showOwnerButton, h
   const visibleHelpers = helpers.filter((helper) => helper.show)
   return (
     <div className="ord">
-      <span>
-        {order.name}
+      <span className="ord-name">
+        <b className="ord-title">{order.name}</b>
         {status === 'acknowledged' ? (
-          <span className="w"> 확인중{order.acknowledgedAt != null ? ` ${formatClock(order.acknowledgedAt)}` : ''}</span>
+          <span className="wait-badge is-ack">확인중{order.acknowledgedAt != null ? ` ${formatClock(order.acknowledgedAt)}` : ''}</span>
         ) : (
-          <span className="w"> 대기 {wait}분</span>
+          <span className="wait-badge">대기 {wait}분</span>
         )}
       </span>
       <span className="acts">
         {showOwnerButton ? (
-          <button type="button" className="sm" onClick={() => performOrder(ownerId, patientId, order.id, ownerId)}>
+          <button type="button" className="sm do" onClick={() => performOrder(ownerId, patientId, order.id, ownerId)}>
             수행
           </button>
         ) : null}
         {visibleHelpers.map((helper) => (
-          <button key={helper.from} type="button" className="sm" onClick={() => performOrder(ownerId, patientId, order.id, helper.from)}>
+          <button key={helper.from} type="button" className="sm do" onClick={() => performOrder(ownerId, patientId, order.id, helper.from)}>
             {helper.name} 수행
           </button>
         ))}

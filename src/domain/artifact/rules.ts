@@ -79,6 +79,19 @@ export function isActivePending(order: ArtifactOrder): boolean {
   return orderStatus(order) === 'pending'
 }
 
+/** 화면에 '대기 N분'으로 보이는 경과시간을 간호사 단위로 합산한다. */
+export function elapsedPendingMin(state: ArtifactState, nurse: ArtifactNurse): number {
+  return nurse.patients.reduce((sum, patient) => {
+    return (
+      sum +
+      patient.orders.reduce((orderSum, order) => {
+        if (!isActivePending(order)) return orderSum
+        return orderSum + Math.max(0, state.t - order.at)
+      }, 0)
+    )
+  }, 0)
+}
+
 export function dueOf(nurse: ArtifactNurse, order: ArtifactOrder): number {
   const base = DUE_BY_ORDER[order.name] ?? ARTIFACT.defaultDueMin
   return Math.max(ARTIFACT.minimumDueMin, base - (nurse.prio ? ARTIFACT.priorityEarlyMin : 0))

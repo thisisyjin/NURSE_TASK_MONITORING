@@ -361,8 +361,25 @@ export function endSupport(state: ArtifactState, from: string): ActionResult {
   const helper = findNurse(next, from)?.name ?? from
   const target = findNurse(next, support.to)?.name ?? support.to
   pushActivity(next, 'end', `${helper}의 ${target} 지원 종료, ${support.end - support.start}분, 수행 ${support.tasks}건`)
+  dismissAplus(next, from)
   trackHigh(next)
   return { state: next, toast: `지원 종료, ${support.end - support.start}분, 수행 ${support.tasks}건 기록` }
+}
+
+function dismissAplus(state: ArtifactState, from: string) {
+  if (from !== 'n7') return
+  if (state.supports.some((support) => support.from === 'n7' && !support.end)) return
+  const helper = findNurse(state, 'n7')
+  if (!helper) return
+  const source = state.nurses.find((nurse) => nurse.coverBy === 'n7')
+  if (helper.patients.length && !source) return
+  if (source) {
+    source.patients = [...helper.patients, ...source.patients]
+    delete source.coverBy
+  }
+  state.nurses = state.nurses.filter((nurse) => nurse.id !== 'n7')
+  delete state.help.n7
+  if (state.view === 'n7') state.view = 'leader'
 }
 
 export function endCprTeam(state: ArtifactState): ActionResult {

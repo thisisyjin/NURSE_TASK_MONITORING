@@ -4,6 +4,8 @@ import {
   acceptSupport,
   acknowledgeOrder,
   assignSupport,
+  endSupport,
+  requestAplus,
   completeOrder,
   declineSupport,
   resetArtifact,
@@ -13,7 +15,7 @@ import {
   triggerSurge,
 } from './actions'
 import { createInitialArtifactState } from './initialState'
-import { assignmentBlockReason, buildAlerts, capacityOf, dueOf, findNurse, loadOf, levelOf, minutesLevel, newsRaised, nurseQueue, recommendNurse, zoneTimeliness } from './rules'
+import { assignmentBlockReason, buildAlerts, capacityOf, dueOf, elapsedPendingMin, findNurse, loadOf, levelOf, minutesLevel, newsRaised, nurseQueue, recommendNurse, zoneTimeliness } from './rules'
 
 const fixed = () => 0.99
 
@@ -38,6 +40,9 @@ describe('최신 Artifact 09:00', () => {
     expect(nurseLoad('n5', state).level).toBe('mid')
     expect(nurseLoad('n6', state).load).toBeNull()
     expect(nurseLoad('n6', state).level).toBe('ok')
+    expect(elapsedPendingMin(state, findNurse(state, 'n1')!)).toBe(95)
+    expect(elapsedPendingMin(state, findNurse(state, 'n3')!)).toBe(20)
+    expect(elapsedPendingMin(state, findNurse(state, 'n6')!)).toBe(0)
   })
 
   it('인력 적정성은 환자 담당 간호사 5명 x 50분으로 256/250 초과다', () => {
@@ -207,5 +212,16 @@ describe('지원과 이벤트', () => {
     const waiting = assignSupport(initial, 'n6', 'n1').state
     expect(assignmentBlockReason(waiting, 'n4', 'n1')).toContain('응답')
     expect(assignSupport(waiting, 'n4', 'n1').state).toBe(waiting)
+  })
+
+  it('A-plus 지원 종료 후에는 외부 인력이 근무조에서 빠진다', () => {
+    const joined = requestAplus(createInitialArtifactState()).state
+    expect(findNurse(joined, 'n7')?.name).toBe('A-plus 지원간호사')
+    const assigned = assignSupport(joined, 'n7', 'n1').state
+    const accepted = acceptSupport(assigned, 'n7').state
+    const ended = endSupport(accepted, 'n7').state
+    expect(findNurse(ended, 'n7')).toBeUndefined()
+    expect(ended.supports.some((support) => support.from === 'n7' && support.end)).toBe(true)
+    expect(findNurse(ended, 'n1')).toBeTruthy()
   })
 })
