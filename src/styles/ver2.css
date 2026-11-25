@@ -192,6 +192,11 @@
   background: var(--chip);
 }
 
+.ver2 .need-table tbody tr.is-cpr,
+.ver2 .need-table tbody tr.is-cpr.is-on {
+  background: var(--hi-soft);
+}
+
 .ver2 .who,
 .ver2 .pair-arrow span {
   box-shadow: none;

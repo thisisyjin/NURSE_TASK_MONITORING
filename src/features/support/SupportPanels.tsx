@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ARTIFACT, CAPACITY_LABEL, CATEGORY_LABEL, DECLINE_REASONS, LEVEL_LABEL, ORDER_CATALOG, SURGE_TYPES } from '../../config/artifactConfig'
 import {
   activeSupport,
@@ -175,14 +175,14 @@ function CprMatch() {
   const assignCpr = useDemoStore((state) => state.assignCpr)
   const finishCprTeam = useDemoStore((state) => state.finishCprTeam)
   const target = findNurse(board, 'n6')
-  const targetLevel = target ? levelOf(board, target) : 'hi'
-  const targetLoad = target ? elapsedPendingMin(board, target) : 0
   const teamReady = Boolean(board.cpr && board.cpr.phase === 0 && !board.supports.some((support) => support.cpr && !support.end))
   const teamLive = Boolean(board.cpr && board.cpr.phase >= 1 && board.supports.some((support) => support.cpr && activeSupport(support)))
   const first = recommendNurse(board, 'n6')
   const second = first ? recommendNurse(board, 'n6', [first.id]) : undefined
-  const assigned = board.supports.filter((support) => support.cpr && !support.end).map((support) => findNurse(board, support.from)?.name ?? support.from)
-  const names = teamLive ? assigned.join(', ') : [first?.name, second?.name].filter(Boolean).join(', ')
+  const assignedNames = board.supports
+    .filter((support) => support.cpr && !support.end)
+    .map((support) => findNurse(board, support.from)?.name ?? support.from)
+  const names = (assignedNames.length ? assignedNames : [first?.name, second?.name].filter(Boolean)).join(', ')
 
   return (
     <div className="match-detail">
@@ -191,17 +191,16 @@ function CprMatch() {
           <span className="who-kicker">지원 대상</span>
           <div className="who-name">
             <strong>{target?.name ?? '한지호'}</strong>
-            <span className={`lvl l-${targetLevel}`}>{LEVEL_LABEL[targetLevel]}</span>
+            <span className="cpr-badge">CPR</span>
           </div>
-          <b className="who-min">{targetLoad}분</b>
         </div>
         <div className="pair-arrow" aria-hidden="true">
           <span>←</span>
         </div>
         <div className="who">
-          <span className="who-kicker">{teamLive ? '배정된 팀' : '추천 1순위'}</span>
+          <span className="who-kicker">{assignedNames.length ? '배정된 팀' : '추천 팀'}</span>
           <strong className="who-team">{names || '없음'}</strong>
-          <span className="team-label">{teamLive ? '진행 중' : '팀 배정'}</span>
+          {teamLive ? <span className="team-label">진행 중</span> : null}
         </div>
       </div>
       {teamReady && first ? (
@@ -269,7 +268,13 @@ export function SupportAlertPanel({ collapsible = false }: { collapsible?: boole
   const [open, setOpen] = useState(true)
   const [folding, setFolding] = useState(false)
   const cprOpen = Boolean(board.cpr && !board.cpr.closed)
-  const activeId = picked === 'cpr' && cprOpen ? 'cpr' : needs.some((item) => item.id === picked) ? picked : (needs[0]?.id ?? null)
+  const cprSeen = useRef(cprOpen)
+  useEffect(() => {
+    if (cprOpen && !cprSeen.current) setPicked('cpr')
+    if (!cprOpen && cprSeen.current) setPicked((current) => (current === 'cpr' ? null : current))
+    cprSeen.current = cprOpen
+  }, [cprOpen])
+  const activeId = picked === 'cpr' && cprOpen ? 'cpr' : needs.some((item) => item.id === picked) ? picked : cprOpen ? 'cpr' : (needs[0]?.id ?? null)
   const cprNurse = findNurse(board, 'n6')
   const cprMinutes = cprNurse ? elapsedPendingMin(board, cprNurse) : 0
   const cprLevel = cprNurse ? levelOf(board, cprNurse) : 'hi'
@@ -327,6 +332,21 @@ export function SupportAlertPanel({ collapsible = false }: { collapsible?: boole
                 </tr>
               </thead>
               <tbody>
+                {cprOpen ? (
+                  <tr className={activeId === 'cpr' ? 'is-pick is-on is-cpr' : 'is-pick is-cpr'} onClick={() => setPicked('cpr')}>
+                    <td>
+                      <span className="cpr-name">
+                        {cprNurse?.name ?? '한지호'}
+                        <span className="cpr-badge">CPR</span>
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`lvl l-${cprLevel}`}>{LEVEL_LABEL[cprLevel]}</span>
+                    </td>
+                    <td className="n">{cprMinutes}분</td>
+                    <td>{teamLive ? '진행 중' : '긴급'}</td>
+                  </tr>
+                ) : null}
                 {needs.map((item) => {
                   const nurse = findNurse(board, item.id)
                   const level = nurse ? levelOf(board, nurse) : 'ok'
@@ -346,21 +366,6 @@ export function SupportAlertPanel({ collapsible = false }: { collapsible?: boole
                     </tr>
                   )
                 })}
-                {cprOpen ? (
-                  <tr className={activeId === 'cpr' ? 'is-pick is-on is-cpr' : 'is-pick is-cpr'} onClick={() => setPicked('cpr')}>
-                    <td>
-                      <span className="cpr-name">
-                        {cprNurse?.name ?? '한지호'}
-                        <span className="cpr-badge">CPR</span>
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`lvl l-${cprLevel}`}>{LEVEL_LABEL[cprLevel]}</span>
-                    </td>
-                    <td className="n">{cprMinutes}분</td>
-                    <td>{teamLive ? '진행 중' : '긴급'}</td>
-                  </tr>
-                ) : null}
               </tbody>
             </table>
           ) : null}

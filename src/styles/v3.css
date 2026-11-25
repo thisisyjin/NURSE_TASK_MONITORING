@@ -220,6 +220,11 @@ body:has(.v3) {
   background: var(--accent-soft);
 }
 
+.need-table tbody tr.is-cpr,
+.need-table tbody tr.is-cpr.is-on {
+  background: var(--hi-soft);
+}
+
 .match-fold {
   margin-top: 12px;
   padding-top: 8px;
@@ -967,8 +972,11 @@ button.sum-card.is-on {
 
 .who-team {
   display: block;
-  white-space: normal;
+  width: 100%;
+  overflow: visible;
+  font-size: 16px;
   line-height: 1.35;
+  white-space: normal;
 }
 
 .team-label {

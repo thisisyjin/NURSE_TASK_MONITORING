@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ARTIFACT, DEMO_SCENARIOS, FULL_VIEWS } from '../../config/artifactConfig'
+import { ARTIFACT, FULL_VIEWS } from '../../config/artifactConfig'
 import { formatClock } from '../../domain/artifact/rules'
 import { useDemoStore } from '../../store/demoStore'
 import { VersionSwitch } from '../../app/navigation'
@@ -22,7 +22,6 @@ function ThemeToggle() {
 export function DemoToolbar() {
   const board = useDemoStore((state) => state.board)
   const autoRunning = useDemoStore((state) => state.autoRunning)
-  const setScenario = useDemoStore((state) => state.setScenario)
   const setView = useDemoStore((state) => state.setView)
   const stepMinutes = useDemoStore((state) => state.stepMinutes)
   const toggleAuto = useDemoStore((state) => state.toggleAuto)
@@ -46,12 +45,6 @@ export function DemoToolbar() {
         <span>{formatClock(board.t)}</span>
       </div>
       <div className="bar" role="toolbar" aria-label="시연 제어">
-        <PrettySelect
-          label="시나리오"
-          value={board.scenario ?? 'original'}
-          onChange={(value) => setScenario(value as 'original' | 'flow')}
-          options={Object.entries(DEMO_SCENARIOS).map(([value, item]) => ({ value, label: item.label, hint: item.hint }))}
-        />
         <PrettySelect
           label="현재 화면"
           value={board.view}

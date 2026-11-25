@@ -641,6 +641,10 @@ export function BackupApp() {
           <button type="button" className="text-link" onClick={() => go('/')}>
             1안
           </button>
+          <span className="foot-sep" aria-hidden="true">|</span>
+          <a className="text-link" href="https://claude.ai/artifact/Gpcsq5LYU16mRKxATNXdaR" target="_blank" rel="noopener noreferrer">
+            Claude 시연화면
+          </a>
         </div>
       </footer>
       {guide ? <GuideModal onClose={() => setGuide(false)} /> : null}

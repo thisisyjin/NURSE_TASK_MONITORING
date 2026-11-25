@@ -6,11 +6,64 @@
   align-items: center;
 }
 
+.reports-tools {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.reports .clock {
+  text-align: right;
+  line-height: 1.1;
+}
+
+.reports .clock small {
+  margin-bottom: 2px;
+  text-align: right;
+}
+
 .reports-back {
   min-height: 40px;
   padding: 0 14px;
   border-radius: 10px;
   font-weight: 700;
+}
+
+.reports-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.reports-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 18px 14px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.reports-stat b {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.reports-stat span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.reports-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  gap: 12px;
 }
 
 .reports .bar {
@@ -43,9 +96,65 @@
 }
 
 .reports .box h2 {
+  align-items: center;
   margin-bottom: 12px;
   font-size: 18px;
   font-weight: 700;
+}
+
+.reports .box h2 .reports-title {
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.reports .box h2 .reports-title em {
+  margin-left: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 600;
+}
+
+.reports-levels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.reports .lvl,
+.reports .rep-state {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--chip);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.reports .lvl.l-hi,
+.reports .rep-state.bad {
+  color: var(--hi);
+  background: var(--hi-soft);
+}
+
+.reports .lvl.l-mid,
+.reports .rep-state.wait {
+  color: var(--mid);
+  background: var(--mid-soft);
+}
+
+.reports .lvl.l-ok,
+.reports .rep-state.done {
+  color: var(--ok);
+  background: var(--ok-soft);
+}
+
+.reports .rep-state.live {
+  color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .reports .sheet {
@@ -70,8 +179,42 @@
   font-weight: 700;
 }
 
+.reports .sheet th.num,
+.reports .sheet td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.reports .sheet td.num,
+.reports .sheet td.name {
+  font-weight: 700;
+}
+
+.reports .sheet td.when {
+  font-variant-numeric: tabular-nums;
+}
+
+.reports .sheet tbody tr.is-hi td:first-child {
+  box-shadow: inset 3px 0 0 var(--hi);
+}
+
+.reports .sheet tbody tr:hover td {
+  background: color-mix(in srgb, var(--chip) 70%, transparent);
+}
+
 .reports .sheet tr:last-child td {
   border-bottom: 0;
+}
+
+@media (max-width: 1100px) {
+  .reports-stats,
+  .reports-split {
+    grid-template-columns: 1fr;
+  }
+
+  .reports-tools {
+    align-items: flex-end;
+  }
 }
 
 .reports .sheet td.empty {
