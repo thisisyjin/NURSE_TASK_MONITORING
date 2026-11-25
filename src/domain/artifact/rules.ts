@@ -152,7 +152,8 @@ export function levelOf(state: ArtifactState, nurse: ArtifactNurse): LevelCode {
   const load = loadOf(state, nurse)
   if (!load) return ROLE_BASE_LEVEL[nurse.role] || 'ok'
   if (load.ev) return 'hi'
-  return minutesLevel(load.now)
+  if (nurse.patients.some((patient) => patient.ktas <= ARTIFACT.criticalKtasAtOrBelow)) return 'hi'
+  return minutesLevel(elapsedPendingMin(state, nurse))
 }
 
 export function capacityOf(state: ArtifactState): CapacityResult {
@@ -177,7 +178,7 @@ export function eligibleHelpers(state: ArtifactState, targetId: string, exclude:
     .sort(
       (a, b) =>
         (levelOf(state, a) === 'ok' ? 0 : 1) - (levelOf(state, b) === 'ok' ? 0 : 1) ||
-        (loadOf(state, a)?.now ?? 0) - (loadOf(state, b)?.now ?? 0),
+        elapsedPendingMin(state, a) - elapsedPendingMin(state, b),
     )
 }
 

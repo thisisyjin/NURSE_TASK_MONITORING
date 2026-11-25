@@ -1,4 +1,4 @@
-import { ARTIFACT, CATALOG_MAP, ORDER_CATALOG, SURGE_TYPES } from '../../config/artifactConfig'
+import { ARTIFACT, CATALOG_MAP, ORDER_CATALOG, SURGE_TYPES, type DemoScenarioId } from '../../config/artifactConfig'
 import { assignmentBlockReason, findNurse, supportFrom, trackHigh } from './rules'
 import { createInitialArtifactState } from './initialState'
 import type { ActivityKind, ArtifactOrder, ArtifactPatient, ArtifactState, ArtifactSupport } from './types'
@@ -152,10 +152,55 @@ export function withView(state: ArtifactState, view: string): ActionResult {
   return { state: next }
 }
 
+function releaseDueOrders(state: ArtifactState) {
+  for (const nurse of state.nurses) {
+    for (const patient of nurse.patients) {
+      if (patient.cpr) continue
+      patient.sched = patient.sched.filter(([name, at]) => {
+        if (at <= state.t) {
+          patient.orders.push(issue(state, name, at))
+          return false
+        }
+        return true
+      })
+    }
+  }
+}
+
+function completeOldestWaiting(state: ArtifactState, nurseId: string): string | null {
+  const nurse = findNurse(state, nurseId)
+  if (!nurse) return null
+  let picked: { patient: ArtifactPatient; order: ArtifactOrder } | null = null
+  for (const patient of nurse.patients) {
+    if (patient.cpr) continue
+    for (const order of patient.orders) {
+      if ((order.status ?? 'pending') === 'completed' || order.at >= state.t) continue
+      if (!picked || order.at < picked.order.at) picked = { patient, order }
+    }
+  }
+  if (!picked) return null
+  picked.order.status = 'completed'
+  state.done[nurse.id] = (state.done[nurse.id] ?? 0) + picked.order.min
+  pushActivity(state, 'perform', `${picked.patient.id} ${picked.order.name} 수행, 수행자 ${nurse.name}`)
+  return `${nurse.name} ${picked.order.name}`
+}
+
+function stepFlow(state: ArtifactState): ActionResult {
+  releaseDueOrders(state)
+  const done = state.nurses.map((nurse) => completeOldestWaiting(state, nurse.id)).filter((item): item is string => Boolean(item))
+  let toast: string | undefined
+  if (!state.cpr && state.t >= ARTIFACT.cpcrAtMin) toast = beginCpcr(state)
+  else toast = advanceCpcr(state)
+  trackHigh(state)
+  const progressed = done.length ? `오래된 대기 처방 ${done.length}건을 수행으로 반영했습니다.` : '새로 쌓인 대기 처방은 없습니다.'
+  return { state, toast: toast ? `${toast} ${progressed}` : `15분이 지났습니다. ${progressed}` }
+}
+
 export function stepMinutes(state: ArtifactState, minutes: number, rand: Rand = Math.random): ActionResult {
   const next = cloneState(state)
-  const random = randomOf(rand)
   next.t += minutes
+  if (next.scenario === 'flow') return stepFlow(next)
+  const random = randomOf(rand)
   for (const nurse of next.nurses) {
     for (const patient of nurse.patients) {
       if (patient.cpr) continue
@@ -434,6 +479,6 @@ export function requestAplus(state: ArtifactState): ActionResult {
   return { state: next, toast: 'A-plus팀 지원 간호사가 근무조에 합류했습니다. 지원 배정 대상으로 추천됩니다.' }
 }
 
-export function resetArtifact(): ActionResult {
-  return { state: createInitialArtifactState(), toast: '초기 상태로 되돌렸습니다.' }
+export function resetArtifact(scenario: DemoScenarioId = 'original'): ActionResult {
+  return { state: createInitialArtifactState(scenario), toast: '초기 상태로 되돌렸습니다.' }
 }

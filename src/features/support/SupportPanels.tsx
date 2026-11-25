@@ -5,11 +5,11 @@ import {
   buildAlerts,
   capacityOf,
   eligibleHelpers,
+  elapsedPendingMin,
   findNurse,
   formatClock,
   isFullView,
   levelOf,
-  loadOf,
   recommendNurse,
   supportFrom,
   zoneTimeliness,
@@ -17,6 +17,7 @@ import {
 import type { ArtifactState, ArtifactSupport } from '../../domain/artifact/types'
 import { useDemoStore } from '../../store/demoStore'
 import { NurseName } from '../ui/NurseName'
+import { SentenceNote } from '../ui/SentenceNote'
 import { PrettySelect } from '../ui/PrettySelect'
 
 type NeedItem = { id: string; label: string }
@@ -88,9 +89,9 @@ function MatchDetail({ board, targetId }: { board: ArtifactState; targetId: stri
   const partnerId = waiting?.from ?? active?.from ?? pickedHelper?.id ?? ''
   const partner = findNurse(board, partnerId)
   const partnerLevel = partner ? levelOf(board, partner) : null
-  const partnerLoad = partner ? (loadOf(board, partner)?.now ?? 0) : 0
+  const partnerLoad = partner ? elapsedPendingMin(board, partner) : 0
   const targetLevel = target ? levelOf(board, target) : 'ok'
-  const targetLoad = target ? (loadOf(board, target)?.now ?? 0) : 0
+  const targetLoad = target ? elapsedPendingMin(board, target) : 0
   const latestDecline = [...board.decline].reverse().find((item) => item.to === targetId)
   const partnerTitle = waiting || active ? '배정된 간호사' : partner?.id && partner.id === recommended?.id ? '추천 1순위' : '선택한 후보'
 
@@ -125,11 +126,15 @@ function MatchDetail({ board, targetId }: { board: ArtifactState; targetId: stri
           {findNurse(board, waiting.from)?.name}에게 요청했습니다.
         </p>
       ) : null}
-      {active ? <p className="match-note">지원 진행 중, 수행 {active.tasks}건. 수락 후 업무량 감산이 적용됐습니다.</p> : null}
+      {active ? (
+        <SentenceNote className="match-note" text={`지원 진행 중, 수행 ${active.tasks}건. 수락 후 업무량 감산이 적용됐습니다.`} />
+      ) : null}
       {!waiting && !active && latestDecline ? (
-        <p className="decline-toast" role="status">
-          {withSubject(findNurse(board, latestDecline.from)?.name ?? '간호사')} 거절했습니다. 사유는 {latestDecline.why}이고, 다음 후보를 추천합니다.
-        </p>
+        <SentenceNote
+          className="decline-toast"
+          role="status"
+          text={`${withSubject(findNurse(board, latestDecline.from)?.name ?? '간호사')} 거절했습니다. 사유는 ${latestDecline.why}이고, 다음 후보를 추천합니다.`}
+        />
       ) : null}
       {!waiting && !active && helpers.length > 0 ? (
         <PrettySelect
@@ -139,7 +144,7 @@ function MatchDetail({ board, targetId }: { board: ArtifactState; targetId: stri
           options={helpers.map((nurse) => ({
             value: nurse.id,
             label: nurse.name,
-            hint: `${LEVEL_LABEL[levelOf(board, nurse)]} ${loadOf(board, nurse)?.now ?? 0}분`,
+            detail: [LEVEL_LABEL[levelOf(board, nurse)], `${elapsedPendingMin(board, nurse)}분`],
             mark: nurse.id === recommended?.id ? '추천' : undefined,
           }))}
         />
@@ -170,7 +175,7 @@ function CprMatch() {
   const finishCprTeam = useDemoStore((state) => state.finishCprTeam)
   const target = findNurse(board, 'n6')
   const targetLevel = target ? levelOf(board, target) : 'hi'
-  const targetLoad = target ? (loadOf(board, target)?.now ?? 0) : 0
+  const targetLoad = target ? elapsedPendingMin(board, target) : 0
   const teamReady = Boolean(board.cpr && board.cpr.phase === 0 && !board.supports.some((support) => support.cpr && !support.end))
   const teamLive = Boolean(board.cpr && board.cpr.phase >= 1 && board.supports.some((support) => support.cpr && activeSupport(support)))
   const first = recommendNurse(board, 'n6')
@@ -255,25 +260,57 @@ export function IncomingRequestBanner() {
   )
 }
 
-export function SupportAlertPanel() {
+export function SupportAlertPanel({ collapsible = false }: { collapsible?: boolean }) {
   const board = useDemoStore((state) => state.board)
   const full = isFullView(board.view)
   const needs = supportNeeds(board)
   const [picked, setPicked] = useState<string | null>(null)
+  const [open, setOpen] = useState(true)
+  const [folding, setFolding] = useState(false)
   const cprOpen = Boolean(board.cpr && !board.cpr.closed)
   const activeId = picked === 'cpr' && cprOpen ? 'cpr' : needs.some((item) => item.id === picked) ? picked : (needs[0]?.id ?? null)
   const cprNurse = findNurse(board, 'n6')
-  const cprMinutes = cprNurse ? (loadOf(board, cprNurse)?.now ?? 0) : 0
+  const cprMinutes = cprNurse ? elapsedPendingMin(board, cprNurse) : 0
   const cprLevel = cprNurse ? levelOf(board, cprNurse) : 'hi'
   const teamLive = Boolean(board.cpr && board.cpr.phase >= 1 && board.supports.some((support) => support.cpr && activeSupport(support)))
 
+  const folded = collapsible && !open
+
   return (
-    <section className="box" aria-label="지원 매칭 및 배정">
+    <section
+      className={`box support-panel${folded ? ' is-folded' : ''}${collapsible && open ? ' is-open' : ''}${folding ? ' is-folding' : ''}`}
+      aria-label="지원 매칭 및 배정"
+    >
       <h2>
-        지원 매칭 및 배정 <span>지원 필요 {needs.length}건</span>
+        지원 매칭 및 배정
+        <span>
+          지원 필요 {needs.length}건
+          {collapsible ? (
+            <button
+              type="button"
+              className="fold-toggle"
+              aria-expanded={open}
+              onClick={() => {
+                setFolding(true)
+                setOpen((value) => !value)
+                window.setTimeout(() => setFolding(false), 360)
+              }}
+            >
+              {open ? '접기' : '펼치기'}
+            </button>
+          ) : null}
+        </span>
       </h2>
+      <div
+        className="support-fold"
+        onTransitionEnd={(event) => {
+          if (event.target !== event.currentTarget || event.propertyName !== 'grid-template-rows') return
+          setFolding(false)
+        }}
+      >
+      <div className="support-fold-inner" inert={folded && !folding ? true : undefined}>
       {!full ? (
-        <p className="match-note">지원 배정은 근무조 리더 화면에서 합니다. 받은 요청은 위 알림에서 응답합니다.</p>
+        <SentenceNote className="match-note" text="지원 배정은 근무조 리더 화면에서 합니다. 받은 요청은 위 알림에서 응답합니다." />
       ) : null}
       {full ? (
         <>
@@ -284,7 +321,7 @@ export function SupportAlertPanel() {
                 <tr>
                   <th>간호사</th>
                   <th>단계</th>
-                  <th className="n">업무량</th>
+                  <th className="n">대기처방</th>
                   <th>상태</th>
                 </tr>
               </thead>
@@ -292,7 +329,7 @@ export function SupportAlertPanel() {
                 {needs.map((item) => {
                   const nurse = findNurse(board, item.id)
                   const level = nurse ? levelOf(board, nurse) : 'ok'
-                  const minutes = nurse ? (loadOf(board, nurse)?.now ?? 0) : 0
+                  const minutes = nurse ? elapsedPendingMin(board, nurse) : 0
                   return (
                     <tr
                       key={item.id}
@@ -309,7 +346,7 @@ export function SupportAlertPanel() {
                   )
                 })}
                 {cprOpen ? (
-                  <tr className={activeId === 'cpr' ? 'is-pick is-on' : 'is-pick'} onClick={() => setPicked('cpr')}>
+                  <tr className={activeId === 'cpr' ? 'is-pick is-on is-cpr' : 'is-pick is-cpr'} onClick={() => setPicked('cpr')}>
                     <td>
                       <span className="cpr-name">
                         {cprNurse?.name ?? '한지호'}
@@ -329,6 +366,8 @@ export function SupportAlertPanel() {
           {activeId === 'cpr' ? <CprMatch /> : activeId ? <MatchDetail board={board} targetId={activeId} /> : null}
         </>
       ) : null}
+      </div>
+      </div>
     </section>
   )
 }
@@ -395,7 +434,7 @@ export function SupportHistoryPanel() {
           <div className="modal" role="dialog" aria-modal="true" aria-labelledby="log-title" onClick={(event) => event.stopPropagation()}>
             <h2 id="log-title">전체 지원 기록</h2>
             {rows.length === 0 ? (
-              <p className="empty">기록이 없습니다. 새로고침하면 이번 시연의 기록은 사라집니다.</p>
+              <SentenceNote className="empty" text="기록이 없습니다. 새로고침하면 이번 시연의 기록은 사라집니다." />
             ) : (
               <SupportLogTable rows={rows} />
             )}
@@ -493,7 +532,7 @@ export function OrderCatalogModal({ onClose }: { onClose: () => void }) {
     <div className="modal-back" role="presentation" onClick={onClose}>
       <div className="modal" role="dialog" aria-modal="true" aria-labelledby="cat-title" onClick={(event) => event.stopPropagation()}>
         <h2 id="cat-title">처방 분류 기준</h2>
-        <p className="empty">표준 소요시간은 담당 업무량 계산에 쓰입니다. 화면의 대기 분은 처방 후 경과시간입니다.</p>
+        <SentenceNote className="empty" text="표준 소요시간은 담당 업무량 계산에 쓰입니다. 화면의 대기 분은 처방 후 경과시간입니다." />
         <table>
           <thead>
             <tr>
@@ -542,19 +581,7 @@ export function GuideModal({ onClose }: { onClose: () => void }) {
     <div className="modal-back" role="presentation" onClick={onClose}>
       <div className="modal" role="dialog" aria-modal="true" aria-labelledby="guide-title" onClick={(event) => event.stopPropagation()}>
         <h2 id="guide-title">시연 기준 안내</h2>
-        <p>
-          가상 데이터이며 실제 환자, 직원 정보는 없습니다. 담당 업무량은 관찰 부하, 활력 측정 시간, 아직 수행하지 않은 처방의 표준 소요시간
-          합계입니다. 확인중 처방도 수행 전에는 이 합계에 남고, 수행 대기 건수와 최장 대기에서는 빠집니다. 화면의 대기 분은 처방 발생 후
-          경과시간입니다.
-        </p>
-        <p>
-          업무 단계는 30분 미만 여유, 30분 이상 50분 이하 보통, 50분 초과 높음입니다. 간호요구 급증이 있으면 업무량과 관계없이 높음입니다.
-          지원 추천은 규칙으로 고릅니다. 여유를 먼저 보고, 같으면 담당 업무량이 적은 순입니다. 인공지능 모델이 연결된 상태는 아닙니다.
-        </p>
-        <p>
-          인력 기준은 이 시연에서 담당 환자가 있는 간호사 1명당 50분입니다. 환자 1명당 50분 적용은 아직 협의 중입니다. 수락 전에는 업무량을
-          줄이지 않고, 수락 후에만 지원 감산을 적용합니다. 기록은 브라우저 메모리에만 있어 새로고침하면 사라집니다.
-        </p>
+        <SentenceNote text="가상 데이터이며 실제 환자, 직원 정보는 없습니다. 담당 업무량은 관찰 부하, 활력 측정 시간, 아직 수행하지 않은 처방의 표준 소요시간 합계입니다. 확인중 처방도 수행 전에는 이 합계에 남고, 수행 대기 건수와 최장 대기에서는 빠집니다. 화면의 대기 분은 처방 발생 후 경과시간입니다. 업무 단계는 대기 처방 시간 총합 기준입니다. 30분 미만은 여유, 30분 이상 50분 이하는 보통, 50분 초과는 높음입니다. KTAS 1, 2 환자를 담당하거나 간호요구 급증이 있으면 대기 시간과 관계없이 높음입니다. 지원 추천은 여유를 먼저 보고, 같으면 대기 처방 시간이 적은 순입니다. 인공지능 모델이 연결된 상태는 아닙니다. 인력 기준은 이 시연에서 담당 환자가 있는 간호사 1명당 50분입니다. 환자 1명당 50분 적용은 아직 협의 중입니다. 수락 전에는 업무량을 줄이지 않고, 수락 후에만 지원 감산을 적용합니다. 기록은 브라우저 메모리에만 있어 새로고침하면 사라집니다. 시나리오 1은 간호사 시연 원본입니다. 15분이 지나면 새 처방이 생길 수 있고 09:30에 CPCR 환자가 발생합니다. 시나리오 2는 진행형입니다. 15분마다 가장 오래된 대기 처방을 수행으로 반영하고, 새 처방은 예정 시각이 된 것만 나타납니다." />
         <button type="button" className="modal-close" onClick={onClose}>
           닫기
         </button>

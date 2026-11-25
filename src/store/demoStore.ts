@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { ARTIFACT } from '../config/artifactConfig'
+import { ARTIFACT, DEMO_SCENARIOS, type DemoScenarioId } from '../config/artifactConfig'
 import {
   acceptSupport,
   acknowledgeOrder,
@@ -44,6 +44,7 @@ export interface DemoStore {
   surge: () => void
   startCpcr: () => void
   reset: () => void
+  setScenario: (scenario: 'original' | 'flow') => void
   performOrder: (ownerId: string, patientId: string, orderId: number, performerId: string) => void
   acknowledgeOrder: (ownerId: string, patientId: string, orderId: number) => void
   returnOrder: (ownerId: string, patientId: string, orderId: number) => void
@@ -65,16 +66,17 @@ const idleF2: F2OverlayStatus = {
   message: '이번 단계는 화면 안의 시연 계산을 사용합니다.',
 }
 
-let toastSeq = 0
-let autoTimer: ReturnType<typeof setInterval> | null = null
+function createBoardStore() {
+  let toastSeq = 0
+  let autoTimer: ReturnType<typeof setInterval> | null = null
 
-function stopAuto(set: (partial: Partial<DemoStore>) => void) {
-  if (autoTimer != null) clearInterval(autoTimer)
-  autoTimer = null
-  set({ autoRunning: false })
-}
+  const stopAuto = (set: (partial: Partial<DemoStore>) => void) => {
+    if (autoTimer != null) clearInterval(autoTimer)
+    autoTimer = null
+    set({ autoRunning: false })
+  }
 
-export const useDemoStore = create<DemoStore>((set, get) => {
+  return create<DemoStore>((set, get) => {
   const commit = (result: ActionResult) => {
     set({
       board: result.state,
@@ -103,7 +105,16 @@ export const useDemoStore = create<DemoStore>((set, get) => {
     startCpcr: () => commit(triggerCpcr(get().board)),
     reset: () => {
       stopAuto(set)
-      commit(resetArtifact())
+      commit(resetArtifact(get().board.scenario ?? 'original'))
+    },
+    setScenario: (scenario: DemoScenarioId) => {
+      const board = get().board
+      if ((board.scenario ?? 'original') === scenario) return
+      const dirty = board.t !== ARTIFACT.shiftStartMin || board.activity.length > 0 || board.supports.length > 0 || Boolean(board.cpr)
+      const label = DEMO_SCENARIOS[scenario].label
+      if (dirty && !window.confirm(`${label}로 바꾸면 09:00 초기 상태로 돌아갑니다.`)) return
+      stopAuto(set)
+      commit({ state: createInitialArtifactState(scenario), toast: `${label}로 바꿨습니다. 09:00입니다.` })
     },
     performOrder: (ownerId, patientId, orderId, performerId) => commit(completeOrder(get().board, ownerId, patientId, orderId, performerId)),
     acknowledgeOrder: (ownerId, patientId, orderId) => commit(acknowledgeOrder(get().board, ownerId, patientId, orderId)),
@@ -119,4 +130,8 @@ export const useDemoStore = create<DemoStore>((set, get) => {
     assignCpr: (firstId, secondId) => commit(assignCprTeam(get().board, firstId, secondId)),
     addAplus: () => commit(requestAplus(get().board)),
   }
-})
+  })
+}
+
+export const useDemoStore = createBoardStore()
+export const useBackupStore = createBoardStore()

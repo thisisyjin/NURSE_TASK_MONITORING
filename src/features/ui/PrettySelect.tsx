@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react'
 
-export type PrettyOption = { value: string; label: string; hint?: string; mark?: string }
+export type PrettyOption = { value: string; label: string; hint?: string; detail?: readonly [string, string]; mark?: string }
 
 function OptionText({ option }: { option: PrettyOption }) {
   return (
@@ -8,8 +8,20 @@ function OptionText({ option }: { option: PrettyOption }) {
       <span className="pretty-name">
         <b>{option.label}</b>
         {option.mark ? <em className="pretty-mark">{option.mark}</em> : null}
+        {option.hint ? (
+          <>
+            <span className="pretty-rule" aria-hidden="true" />
+            <small className="pretty-hint">{option.hint}</small>
+          </>
+        ) : null}
       </span>
-      {option.hint ? <small>{option.hint}</small> : null}
+      {option.detail ? (
+        <small className="pretty-detail">
+          <span>{option.detail[0]}</span>
+          <span className="pretty-sep" aria-hidden="true">|</span>
+          <span>{option.detail[1]}</span>
+        </small>
+      ) : null}
     </span>
   )
 }

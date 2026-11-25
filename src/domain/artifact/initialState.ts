@@ -1,6 +1,7 @@
 import { ARTIFACT, CATALOG_MAP } from '../../config/artifactConfig'
 import { trackHigh } from './rules'
 import type { ArtifactOrder, ArtifactPatient, ArtifactState } from './types'
+import type { DemoScenarioId } from '../../config/artifactConfig'
 
 function makeOrder(state: ArtifactState, name: string, at: number): ArtifactOrder {
   const meta = CATALOG_MAP[name]
@@ -23,11 +24,12 @@ function makePatient(
   return { id, nm, bed, reg, ktas, news, newsPrev, vs, avpu: 'A', orders, sched }
 }
 
-export function createInitialArtifactState(): ArtifactState {
+export function createInitialArtifactState(scenario: DemoScenarioId = 'original'): ArtifactState {
   const t0 = ARTIFACT.shiftStartMin
   const state: ArtifactState = {
     t: t0,
     view: 'leader',
+    scenario,
     hiSince: {},
     help: {},
     events: [],

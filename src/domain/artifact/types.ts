@@ -84,6 +84,8 @@ export interface ActivityEntry {
 export interface ArtifactState {
   t: number
   view: string
+  /** 없으면 시나리오 1. 09:00 데이터는 같고 시간 진행만 다르다. */
+  scenario?: 'original' | 'flow'
   hiSince: Record<string, number>
   help: Record<string, boolean>
   events: ArtifactEvent[]

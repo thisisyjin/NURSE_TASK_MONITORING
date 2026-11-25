@@ -183,6 +183,11 @@
         border-color: var(--hi);
         color: var(--hi);
       }
+      button.accent {
+        background: var(--panel);
+        border-color: var(--accent);
+        color: var(--accent);
+      }
       .legend {
         display: flex;
         gap: 10px;

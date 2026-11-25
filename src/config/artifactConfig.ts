@@ -4,6 +4,8 @@ export const ARTIFACT = {
   vitalMinutesPerCheck: 3,
   levelLowBelow: 30,
   levelHighAbove: 50,
+  /** 시연용. 이 등급 이하 환자를 담당하면 대기 시간과 관계없이 높음이다. */
+  criticalKtasAtOrBelow: 2,
   defaultDueMin: 30,
   priorityEarlyMin: 10,
   minimumDueMin: 5,
@@ -26,6 +28,14 @@ export const ARTIFACT = {
   overdueStage2Count: 2,
   overdueStage2PriorityCount: 1,
 } as const
+
+/** 시연 화면에서 고르는 시간 진행 방식. 09:00 환자 구성은 같다. */
+export const DEMO_SCENARIOS = {
+  original: { label: '시나리오 1', hint: '원본' },
+  flow: { label: '시나리오 2', hint: '진행' },
+} as const
+
+export type DemoScenarioId = keyof typeof DEMO_SCENARIOS
 
 export const KTAS_LOAD: Record<number, number> = { 1: 20, 2: 15, 3: 10, 4: 5, 5: 3 }
 

@@ -60,6 +60,33 @@ body:has(.v3) {
   min-width: 0;
 }
 
+.ver-switch {
+  display: inline-flex;
+  flex: none;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+}
+
+.ver-switch button {
+  min-height: 22px;
+  height: 22px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.ver-switch button.is-on {
+  background: var(--ink);
+  color: var(--panel);
+}
+
 .theme-toggle {
   flex: none;
   height: 24px;
@@ -123,12 +150,32 @@ body:has(.v3) {
   border-radius: 10px 10px 0 0;
 }
 
+.v3 .ord {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
 .ord-name {
   display: flex;
   align-items: center;
+  flex: 1 1 0;
   flex-wrap: wrap;
   gap: 8px 16px;
   min-width: 0;
+  max-width: 100%;
+}
+
+.v3 .ord.is-ack {
+  padding: 8px 10px;
+  border-left-color: transparent;
+  border-radius: 8px;
+  background: var(--chip);
+}
+
+.v3 .ord.is-ack .ord-title {
+  color: var(--muted);
+  font-weight: 600;
 }
 
 .v3 .track {
@@ -144,6 +191,12 @@ body:has(.v3) {
 .v3 .ft,
 .v3 .ord .acts {
   gap: 8px;
+}
+
+.v3 .ord .acts button {
+  padding: 3px 8px;
+  font-size: 13px;
+  line-height: 1.2;
 }
 
 .need-table {
@@ -575,17 +628,34 @@ button.sum-card.is-on {
   line-height: 1.25;
 }
 
-.prio-label {
+.v3:not(.ver2) .card .role {
+  margin-top: 4px;
+}
+
+.prio-label,
+.help-label {
   display: inline-flex;
   align-items: center;
+  box-sizing: border-box;
   height: 22px;
   padding: 0 8px;
   border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
+  border: 1px solid transparent;
+  background: var(--panel);
   font-size: 12px;
   font-weight: 700;
   line-height: 1;
+  white-space: nowrap;
+}
+
+.prio-label {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.help-label {
+  color: var(--hi);
+  border-color: var(--hi);
 }
 
 .v3 .card .hd .lvl {
@@ -691,13 +761,12 @@ button.sum-card.is-on {
   padding: 10px 12px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: var(--chip);
+  background: var(--panel);
 }
 
 .pt.is-critical {
   background: var(--panel);
-  border-color: var(--line);
-  box-shadow: inset 3px 0 0 var(--hi);
+  border-color: var(--hi);
 }
 
 .pt-id {
@@ -807,7 +876,9 @@ button.sum-card.is-on {
 }
 
 .wait-badge.is-ack {
+  background: var(--panel);
   color: var(--ink);
+  font-weight: 700;
 }
 
 .v3 button.do {
@@ -1004,7 +1075,21 @@ button.sum-card.is-on {
 .pretty-name {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pretty-rule {
+  width: 1px;
+  height: 12px;
+  background: var(--line);
+  flex: none;
+}
+
+.pretty-hint {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .pretty-mark {
@@ -1031,6 +1116,17 @@ button.sum-card.is-on {
 .pretty-menu small {
   font-size: 12px;
   color: var(--muted);
+}
+
+.pretty-detail {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pretty-sep {
+  color: var(--muted);
+  font-weight: 400;
 }
 
 .pretty-trigger svg {
@@ -1105,6 +1201,30 @@ button.sum-card.is-on {
   display: block;
   text-align: center;
   font-size: 15px;
+  padding: 22px 16px;
+}
+
+.sentence-note {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 22px 16px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.sentence-note span {
+  display: block;
+}
+
+.decline-toast.sentence-note {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .zone-table th,
@@ -1170,7 +1290,7 @@ button.sum-card.is-on {
 
 .staff-request p {
   margin: 6px 0 0;
-  padding: 0;
+  padding: 0 0 0 9px;
   text-indent: 0;
   color: var(--ink);
   font-size: 13px;
@@ -1181,8 +1301,8 @@ button.sum-card.is-on {
   flex: none;
 }
 
-.log-empty {
-  padding: 28px 8px;
+.v3 .log-empty {
+  padding: 28px 16px;
 }
 
 .need-act {

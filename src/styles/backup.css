@@ -1,0 +1,7 @@
+.backup .legend {
+  display: flex;
+}
+
+.backup .track .fc {
+  display: none;
+}

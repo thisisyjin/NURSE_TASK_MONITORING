@@ -1,4 +1,4 @@
-import { formatClock, orderStatus } from '../../domain/artifact/rules'
+import { orderStatus } from '../../domain/artifact/rules'
 import type { ArtifactOrder } from '../../domain/artifact/types'
 import { useDemoStore } from '../../store/demoStore'
 
@@ -20,14 +20,10 @@ export function OrderRow({ ownerId, patientId, order, nowMin, showOwnerButton, h
   const wait = Math.max(0, nowMin - order.at)
   const visibleHelpers = helpers.filter((helper) => helper.show)
   return (
-    <div className="ord">
+    <div className={status === 'acknowledged' ? 'ord is-ack' : 'ord'}>
       <span className="ord-name">
         <b className="ord-title">{order.name}</b>
-        {status === 'acknowledged' ? (
-          <span className="wait-badge is-ack">확인중{order.acknowledgedAt != null ? ` ${formatClock(order.acknowledgedAt)}` : ''}</span>
-        ) : (
-          <span className="wait-badge">대기 {wait}분</span>
-        )}
+        {status === 'acknowledged' ? <span className="wait-badge is-ack">확인중</span> : <span className="wait-badge">대기 {wait}분</span>}
       </span>
       <span className="acts">
         {showOwnerButton ? (

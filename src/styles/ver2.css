@@ -1,0 +1,316 @@
+.ver2 {
+  gap: 18px;
+}
+
+.ver2 .support-panel {
+  width: 100%;
+  padding: 18px 48px 20px 20px;
+  border-radius: 16px;
+  box-shadow: none;
+}
+
+.ver2 .support-panel > h2 {
+  margin-bottom: 12px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.ver2 .support-panel > h2 > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ver2 .support-panel.is-folded > h2 {
+  margin-bottom: 0;
+}
+
+.ver2 .fold-toggle {
+  position: relative;
+  height: 22px;
+  margin: 0;
+  padding: 0 2px 0 12px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.ver2 .fold-toggle::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: 1px;
+  height: 14px;
+  background: var(--line);
+}
+
+.ver2 .fold-toggle:hover {
+  color: var(--ink);
+}
+
+.ver2 .support-fold {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.32s ease;
+}
+
+.ver2 .support-panel.is-folded .support-fold {
+  grid-template-rows: 0fr;
+}
+
+.ver2 .support-fold-inner {
+  min-height: 0;
+}
+
+.ver2 .support-panel.is-folded .support-fold-inner,
+.ver2 .support-panel.is-folding .support-fold-inner {
+  overflow: hidden;
+}
+
+.ver2 .support-fold-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(320px, 4fr);
+  gap: 4px 56px;
+  align-items: start;
+  width: 100%;
+}
+
+.ver2 .support-fold-inner > .match-note,
+.ver2 .support-fold-inner > .empty {
+  grid-column: 1 / -1;
+}
+
+.ver2 .support-fold-inner > .need-table {
+  grid-column: 1;
+  font-size: 15px;
+  table-layout: fixed;
+}
+
+.ver2 .support-fold-inner > .need-table th:nth-child(1) {
+  width: 32%;
+}
+
+.ver2 .support-fold-inner > .need-table th:nth-child(2) {
+  width: 20%;
+}
+
+.ver2 .support-fold-inner > .need-table th:nth-child(3) {
+  width: 24%;
+}
+
+.ver2 .support-fold-inner > .need-table th:nth-child(4) {
+  width: 24%;
+}
+
+.ver2 .need-table tr.is-cpr .cpr-name,
+.ver2 .need-table tr.is-cpr td:last-child {
+  color: var(--hi);
+  font-weight: 700;
+}
+
+.ver2 .support-fold-inner > .match-detail {
+  grid-column: 2;
+  width: 100%;
+  margin-top: 0;
+}
+
+.ver2 .card {
+  border-radius: 16px;
+  box-shadow: none;
+}
+
+.ver2 .card .stripe {
+  height: 0;
+}
+
+.ver2 .card .hd {
+  padding: 16px 16px 8px;
+}
+
+.ver2 .track i {
+  background: var(--ink);
+}
+
+.ver2 .track i.s-hi {
+  background: var(--hi);
+}
+
+.ver2 .l-ok,
+.ver2 .l-mid,
+.ver2 .who .lvl.l-ok,
+.ver2 .who .lvl.l-mid {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+
+.ver2 .l-hi,
+.ver2 .who .lvl.l-hi {
+  background: transparent;
+  color: var(--hi);
+  border: 1px solid var(--hi);
+}
+
+.ver2 .stat-row > span {
+  background: transparent;
+  border: 1px solid var(--line);
+}
+
+.ver2 .pt {
+  background: transparent;
+}
+
+.ver2 .pt.is-critical {
+  background: var(--panel);
+}
+
+.ver2 .pretty-mark,
+.ver2 .chip.ac {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+
+.ver2 .chip.hi {
+  background: transparent;
+  color: var(--hi);
+  border: 1px solid var(--hi);
+}
+
+.ver2 button.pri {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--panel);
+}
+
+.ver2 .need-table tbody tr.is-on {
+  background: var(--chip);
+}
+
+.ver2 .who,
+.ver2 .pair-arrow span {
+  box-shadow: none;
+}
+
+.ver2 .pair-arrow span {
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+
+.ver2 .bar button.warn {
+  background: var(--panel);
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+.ver2 .bar button.pri {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--panel);
+}
+
+.ver2 button.do {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--panel);
+}
+
+.ver2 .ktas:not(.is-hot) {
+  background: var(--chip);
+  border-color: transparent;
+}
+
+.ver2 .cpr-badge {
+  background: var(--hi);
+  border-color: var(--hi);
+  color: var(--bg);
+}
+
+.ver2 .ktas.is-hot {
+  background: var(--hi);
+  border-color: var(--hi);
+  color: var(--bg);
+}
+
+.ver2 .staff-request p {
+  padding-left: 10px;
+}
+
+.ver2 .rail {
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--bg);
+}
+
+.ver2 .rail .box {
+  padding: 14px 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  box-shadow: none;
+}
+
+.ver2 .rail .box h2 {
+  margin: 0 0 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.ver2 .rail .box .log-all {
+  font-size: 14px;
+}
+
+.ver2 .rail .box .scroll,
+.ver2 .rail .box .log-table {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.ver2 .rail .box th {
+  background: var(--chip);
+  color: var(--ink);
+  font-weight: 700;
+  padding: 8px 6px;
+}
+
+.ver2 .rail .box td {
+  padding: 8px 6px;
+  background: var(--panel);
+}
+
+.ver2 .rail .box tr:last-child td {
+  border-bottom: 0;
+}
+
+.ver2 .box h2 .lvl.l-hi {
+  background: transparent;
+  border: 1px solid var(--hi);
+}
+
+.ver2 .legend {
+  display: none;
+}
+
+@media (max-width: 1100px) {
+  .ver2 .support-fold-inner {
+    grid-template-columns: 1fr;
+  }
+
+  .ver2 .support-fold-inner > .need-table,
+  .ver2 .support-fold-inner > .match-detail {
+    grid-column: 1;
+    width: auto;
+    max-width: none;
+  }
+}

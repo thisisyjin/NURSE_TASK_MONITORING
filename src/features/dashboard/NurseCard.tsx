@@ -110,14 +110,14 @@ export function NurseCard({ nurse }: { nurse: ArtifactNurse }) {
   const load = loadOf(board, nurse)
   const level = levelOf(board, nurse)
   const queue = nurseQueue(board, nurse)
-  const minutes = load?.now ?? 0
+  const waited = elapsedPendingMin(board, nurse)
   const visible = canSeePatients(board, nurse.id)
   const full = isFullView(board.view)
   const own = full || board.view === nurse.id
   const help = Boolean(board.help[nurse.id])
   const outgoing = supportFrom(board, nurse.id)
   const incoming = board.supports.filter((support) => support.to === nurse.id && !support.end && !support.cpr)
-  const width = Math.min(100, (minutes / ARTIFACT.meterScaleMin) * 100)
+  const width = Math.min(100, (waited / ARTIFACT.meterScaleMin) * 100)
 
   return (
     <article className="card">
@@ -127,6 +127,7 @@ export function NurseCard({ nurse }: { nurse: ArtifactNurse }) {
           <div className="name">
             <NurseName name={nurse.name} />
             {nurse.prio ? <span className="prio-label">우선 대상</span> : null}
+            {help ? <span className="help-label">지원 필요</span> : null}
           </div>
           <div className="role">
             {nurse.patients.length ? `${nurse.role}, 환자 ${nurse.patients.length}명` : `${nurse.role}, 담당 환자 없음`}
@@ -155,20 +156,21 @@ export function NurseCard({ nurse }: { nurse: ArtifactNurse }) {
           <span className="tick" style={{ left: `${(ARTIFACT.levelHighAbove / ARTIFACT.meterScaleMin) * 100}%` }} />
         </div>
       </div>
-      <div className="flags">
-        {queue.acknowledgedCount > 0 ? <span className="chip">확인중 {queue.acknowledgedCount}건</span> : null}
-        {help ? <span className="chip hi">지원 필요</span> : null}
-        {incoming.map((support) => (
-          <span className="chip ac" key={`${support.from}-${support.start}`}>
-            {findNurse(board, support.from)?.name} {support.accepted ? '지원 중' : '응답 대기'}
-          </span>
-        ))}
-        {outgoing ? (
-          <span className="chip ac">
-            {findNurse(board, outgoing.to)?.name} {outgoing.accepted ? '지원 중' : '응답 대기'}
-          </span>
-        ) : null}
-      </div>
+      {queue.acknowledgedCount > 0 || incoming.length > 0 || outgoing ? (
+        <div className="flags">
+          {queue.acknowledgedCount > 0 ? <span className="chip">확인중 {queue.acknowledgedCount}건</span> : null}
+          {incoming.map((support) => (
+            <span className="chip ac" key={`${support.from}-${support.start}`}>
+              {findNurse(board, support.from)?.name} {support.accepted ? '지원 중' : '응답 대기'}
+            </span>
+          ))}
+          {outgoing ? (
+            <span className="chip ac">
+              {findNurse(board, outgoing.to)?.name} {outgoing.accepted ? '지원 중' : '응답 대기'}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
       {visible && nurse.patients.length > 0 ? (
         <div className="pts">
           {nurse.patients.map((patient) => (
@@ -177,7 +179,7 @@ export function NurseCard({ nurse }: { nurse: ArtifactNurse }) {
         </div>
       ) : null}
       {visible && nurse.patients.length === 0 ? <p className="peer">담당 환자가 없습니다.</p> : null}
-      {!visible ? <p className="peer">동료 환자 상세는 이 화면에서 열지 않습니다.</p> : null}
+      {!visible ? <p className="peer">동료의 환자 상세는 조회할 수 없습니다.</p> : null}
       {visible && !own ? <p className="peer">지원 중인 화면입니다.</p> : null}
       {own ? (
         <div className="ft">
@@ -190,7 +192,7 @@ export function NurseCard({ nurse }: { nurse: ArtifactNurse }) {
             </button>
           ) : null}
           {load && full ? (
-            <button type="button" onClick={() => setPriority(nurse.id)}>
+            <button type="button" className={nurse.prio ? 'accent' : undefined} onClick={() => setPriority(nurse.id)}>
               {nurse.prio ? '우선 대상 해제' : '우선 대상 지정'}
             </button>
           ) : null}

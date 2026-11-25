@@ -37,7 +37,7 @@ describe('최신 Artifact 09:00', () => {
     expect(nurseLoad('n4', state).load).toMatchObject({ base: 8, vsl: 0, pend: 3, now: 11, fc: 11, late: 0 })
     expect(nurseLoad('n4', state).level).toBe('ok')
     expect(nurseLoad('n5', state).load).toMatchObject({ base: 26, vsl: 0, pend: 8, now: 34, fc: 44, late: 0 })
-    expect(nurseLoad('n5', state).level).toBe('mid')
+    expect(nurseLoad('n5', state).level).toBe('ok')
     expect(nurseLoad('n6', state).load).toBeNull()
     expect(nurseLoad('n6', state).level).toBe('ok')
     expect(elapsedPendingMin(state, findNurse(state, 'n1')!)).toBe(95)
@@ -50,7 +50,7 @@ describe('최신 Artifact 09:00', () => {
     expect(capacity).toMatchObject({ total: 256, limit: 250, n: 5, level: 'hi' })
   })
 
-  it('초기 알림은 인력 3단계와 높음 1단계 두 건이다. 임시 초과 건수는 단계를 올리지 않는다', () => {
+  it('초기 알림은 인력 3단계와 KTAS 2 담당 간호사 두 명의 1단계다', () => {
     const alerts = buildAlerts(createInitialArtifactState())
     expect(alerts.map((alert) => alert.st)).toEqual([3, 1, 1])
     expect(alerts.some((alert) => alert.st === 0)).toBe(false)
@@ -87,6 +87,18 @@ describe('단계와 수행 기준 경계', () => {
     expect(minutesLevel(30)).toBe('mid')
     expect(minutesLevel(50)).toBe('mid')
     expect(minutesLevel(51)).toBe('hi')
+  })
+
+  it('KTAS 1, 2 담당은 대기 시간이 30분 미만이어도 높음이다', () => {
+    const state = createInitialArtifactState()
+    const lee = findNurse(state, 'n3')
+    const jung = findNurse(state, 'n5')
+    if (!lee || !jung) throw new Error('nurse')
+    expect(elapsedPendingMin(state, lee)).toBe(20)
+    expect(lee.patients.some((patient) => patient.ktas <= 2)).toBe(true)
+    expect(levelOf(state, lee)).toBe('hi')
+    expect(elapsedPendingMin(state, jung)).toBe(15)
+    expect(levelOf(state, jung)).toBe('ok')
   })
 
   it('우선 대상은 수행 기준만 10분 앞당기고 소요시간과 섞지 않는다', () => {
@@ -156,6 +168,18 @@ describe('지원과 이벤트', () => {
     expect(findNurse(stepped, 'n1')?.patients[2]?.sched).toHaveLength(1)
   })
 
+  it('시나리오 2는 15분이 지나면 오래된 대기를 수행으로 반영하고 임의 처방을 더하지 않는다', () => {
+    const start = createInitialArtifactState('flow')
+    const before = findNurse(start, 'n1')?.patients[0]?.orders.map((order) => order.name)
+    const stepped = stepMinutes(start, 15, () => 0).state
+    const orders = findNurse(stepped, 'n1')?.patients[0]?.orders ?? []
+    expect(before).toContain('수혈(PRBC)')
+    expect(orders.find((order) => order.name === '수혈(PRBC)')?.status).toBe('completed')
+    expect(orders.filter((order) => order.status !== 'completed')).toHaveLength(2)
+    expect(stepped.cpr).toBeNull()
+    expect(findNurse(stepped, 'n1')?.patients[0]?.news).toBe(6)
+  })
+
   it('두 번째 15분에는 도래한 예정 처방과 CPCR이 함께 생긴다', () => {
     const first = stepMinutes(createInitialArtifactState(), 15, fixed).state
     const second = stepMinutes(first, 15, fixed).state
@@ -165,6 +189,14 @@ describe('지원과 이벤트', () => {
     expect(levelOf(second, findNurse(second, 'n6')!)).toBe('hi')
     expect(findNurse(second, 'n2')?.patients[1]?.orders.map((order) => order.name)).toContain('채혈')
     expect(buildAlerts(second)[0]?.st).toBe('E')
+  })
+
+  it('시나리오 2도 09:30에는 CPCR 환자가 발생한다', () => {
+    const first = stepMinutes(createInitialArtifactState('flow'), 15, () => 0).state
+    const second = stepMinutes(first, 15, () => 0).state
+    expect(second.t).toBe(ARTIFACT.cpcrAtMin)
+    expect(second.cpr).toMatchObject({ phase: 0, closed: false })
+    expect(findNurse(second, 'n6')?.patients[0]?.id).toBe('R-01')
   })
 
   it('CPCR 버튼을 누르면 09:00에도 소생실 환자가 생기고 다시 누르면 진행 중 안내만 한다', () => {
