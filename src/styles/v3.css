@@ -1265,6 +1265,26 @@ button.sum-card.is-on {
   text-decoration: underline;
 }
 
+.log-report {
+  display: flex;
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px 2px 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  background: none;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.log-report:hover {
+  border-top-color: var(--line);
+  text-decoration: underline;
+}
+
 .staff-request {
   display: flex;
   align-items: center;
@@ -1337,4 +1357,44 @@ button.sum-card.is-on {
   min-height: 34px;
   padding: 6px 14px;
   font-size: 14px;
+}
+
+.v3 .stat-row em {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.v3 .stat-row b {
+  font-size: 20px;
+}
+
+.v3:not(.ver2) .rail {
+  gap: 14px;
+}
+
+.v3:not(.ver2) .rail > .box {
+  padding: 14px 14px 16px;
+}
+
+.v3:not(.ver2) .rail > .box > h2 {
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.v3:not(.ver2) .rail .box th {
+  background: var(--chip);
+  color: var(--ink);
+  font-weight: 700;
+  padding: 8px 6px;
+}
+
+.v3:not(.ver2) .rail .need-table,
+.v3:not(.ver2) .rail .zone-table,
+.v3:not(.ver2) .rail .log-table {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
 }

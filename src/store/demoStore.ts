@@ -24,6 +24,7 @@ import {
 } from '../domain/artifact/actions'
 import { createInitialArtifactState } from '../domain/artifact/initialState'
 import type { ArtifactState } from '../domain/artifact/types'
+import { captureWorkSnapshot, type WorkSnapshot } from '../features/reports/reportData'
 import type { F2OverlayStatus } from './projectState'
 
 export interface DemoToast {
@@ -33,6 +34,7 @@ export interface DemoToast {
 
 export interface DemoStore {
   board: ArtifactState
+  snapshots: WorkSnapshot[]
   toast: DemoToast | null
   autoRunning: boolean
   f2: F2OverlayStatus
@@ -83,15 +85,22 @@ function createBoardStore() {
       toast: result.toast ? { id: ++toastSeq, text: result.toast } : get().toast,
     })
   }
+  const board = createInitialArtifactState()
 
   return {
-    board: createInitialArtifactState(),
+    board,
+    snapshots: [captureWorkSnapshot(board)],
     toast: null,
     autoRunning: false,
     f2: idleF2,
     refresh: async () => {},
     setView: (view) => commit(withView(get().board, view)),
-    stepMinutes: (minutes = ARTIFACT.manualStepMin) => commit(stepMinutes(get().board, minutes)),
+    stepMinutes: (minutes = ARTIFACT.manualStepMin) => {
+      const before = get().board.t
+      commit(stepMinutes(get().board, minutes))
+      const board = get().board
+      if (board.t !== before) set({ snapshots: [...get().snapshots, captureWorkSnapshot(board)] })
+    },
     toggleAuto: () => {
       if (autoTimer != null) {
         stopAuto(set)
@@ -105,7 +114,9 @@ function createBoardStore() {
     startCpcr: () => commit(triggerCpcr(get().board)),
     reset: () => {
       stopAuto(set)
-      commit(resetArtifact(get().board.scenario ?? 'original'))
+      const result = resetArtifact(get().board.scenario ?? 'original')
+      commit(result)
+      set({ snapshots: [captureWorkSnapshot(result.state)] })
     },
     setScenario: (scenario: DemoScenarioId) => {
       const board = get().board
@@ -114,7 +125,9 @@ function createBoardStore() {
       const label = DEMO_SCENARIOS[scenario].label
       if (dirty && !window.confirm(`${label}로 바꾸면 09:00 초기 상태로 돌아갑니다.`)) return
       stopAuto(set)
-      commit({ state: createInitialArtifactState(scenario), toast: `${label}로 바꿨습니다. 09:00입니다.` })
+      const next = createInitialArtifactState(scenario)
+      commit({ state: next, toast: `${label}로 바꿨습니다. 09:00입니다.` })
+      set({ snapshots: [captureWorkSnapshot(next)] })
     },
     performOrder: (ownerId, patientId, orderId, performerId) => commit(completeOrder(get().board, ownerId, patientId, orderId, performerId)),
     acknowledgeOrder: (ownerId, patientId, orderId) => commit(acknowledgeOrder(get().board, ownerId, patientId, orderId)),

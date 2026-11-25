@@ -15,6 +15,7 @@ import {
   zoneTimeliness,
 } from '../../domain/artifact/rules'
 import type { ArtifactState, ArtifactSupport } from '../../domain/artifact/types'
+import { go } from '../../app/navigation'
 import { useDemoStore } from '../../store/demoStore'
 import { NurseName } from '../ui/NurseName'
 import { SentenceNote } from '../ui/SentenceNote'
@@ -429,6 +430,11 @@ export function SupportHistoryPanel() {
         </button>
       </h2>
       {recent.length === 0 ? <p className="empty log-empty">아직 지원 활동이 없습니다.</p> : <SupportLogTable rows={recent} />}
+      {window.__NURSING_SCREEN__ ? null : (
+        <button type="button" className="log-report" onClick={() => go('/reports')}>
+          리포트 보기
+        </button>
+      )}
       {open ? (
         <div className="modal-back" role="presentation" onClick={() => setOpen(false)}>
           <div className="modal" role="dialog" aria-modal="true" aria-labelledby="log-title" onClick={(event) => event.stopPropagation()}>

@@ -5,3 +5,5 @@ dist/
 .vite/
 coverage/
 docs/_pdf_extract/
+/docs
+/export

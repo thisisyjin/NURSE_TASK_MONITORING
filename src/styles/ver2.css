@@ -266,7 +266,8 @@
   font-weight: 700;
 }
 
-.ver2 .rail .box .log-all {
+.ver2 .rail .box .log-all,
+.ver2 .rail .box .log-report {
   font-size: 14px;
 }
 

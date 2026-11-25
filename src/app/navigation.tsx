@@ -2,11 +2,37 @@ import { useEffect, useState } from 'react'
 
 const NAVIGATE = 'app-navigate'
 
+export function normalizeBase(base: string) {
+  if (!base || base === '/' || base === './' || base === '.') return ''
+  const withLead = base.startsWith('/') ? base : `/${base}`
+  return withLead.endsWith('/') ? withLead.slice(0, -1) : withLead
+}
+
+export function toAppPath(pathname: string, base = import.meta.env.BASE_URL) {
+  const prefix = normalizeBase(base)
+  let path = pathname || '/'
+  if (prefix && (path === prefix || path.startsWith(`${prefix}/`))) path = path.slice(prefix.length) || '/'
+  if (!path.startsWith('/')) path = `/${path}`
+  if (path.length > 1 && path.endsWith('/')) path = path.slice(0, -1)
+  return path
+}
+
+export function toLocationPath(appPath: string, base = import.meta.env.BASE_URL) {
+  const prefix = normalizeBase(base)
+  const path = appPath.startsWith('/') ? appPath : `/${appPath}`
+  if (!prefix) return path
+  return path === '/' ? `${prefix}/` : `${prefix}${path}`
+}
+
+function currentAppPath() {
+  return toAppPath(window.location.pathname)
+}
+
 export function usePath() {
-  const [path, setPath] = useState(() => window.location.pathname)
+  const [path, setPath] = useState(currentAppPath)
 
   useEffect(() => {
-    const sync = () => setPath(window.location.pathname)
+    const sync = () => setPath(currentAppPath())
     window.addEventListener('popstate', sync)
     window.addEventListener(NAVIGATE, sync)
     return () => {
@@ -18,13 +44,14 @@ export function usePath() {
   return path
 }
 
-export function isVer2(path = window.location.pathname) {
+export function isVer2(path = currentAppPath()) {
   return path === '/ver2' || path.startsWith('/ver2/')
 }
 
 export function go(path: string) {
-  if (window.location.pathname === path) return
-  window.history.pushState(null, '', path)
+  const next = toLocationPath(path)
+  if (window.location.pathname === next) return
+  window.history.pushState(null, '', next)
   window.dispatchEvent(new Event(NAVIGATE))
 }
 

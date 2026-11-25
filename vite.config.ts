@@ -4,9 +4,19 @@ import react from '@vitejs/plugin-react'
 
 const f2Upstream = 'http://192.168.45.149:3001'
 
+declare const process: { env: { PAGES_BASE?: string } }
+
+function pagesBase() {
+  const raw = process.env.PAGES_BASE
+  if (!raw) return '/'
+  const withLead = raw.startsWith('/') ? raw : `/${raw}`
+  return withLead.endsWith('/') ? withLead : `${withLead}/`
+}
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '')
   return {
+    base: pagesBase(),
     plugins: [react()],
     server: {
       host: true,

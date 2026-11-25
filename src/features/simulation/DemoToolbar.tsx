@@ -36,7 +36,7 @@ export function DemoToolbar() {
       <div>
         <div className="title-row">
           <h1>간호업무량 실시간 간호지원체계</h1>
-          <VersionSwitch />
+          {window.__NURSING_SCREEN__ ? null : <VersionSwitch />}
           <ThemeToggle />
         </div>
         <div className="sub">응급실 시범, D 근무, 가상 데이터</div>

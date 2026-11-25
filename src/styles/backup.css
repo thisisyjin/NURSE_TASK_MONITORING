@@ -1,3 +1,94 @@
+.reports {
+  gap: 14px;
+}
+
+.reports header.top {
+  align-items: center;
+}
+
+.reports-back {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.reports .bar {
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: 12px;
+}
+
+.reports .filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.reports .bar .pretty-select {
+  min-width: 200px;
+}
+
+.reports .bar > .pri {
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.reports .box {
+  padding: 16px 16px 18px;
+}
+
+.reports .box h2 {
+  margin-bottom: 12px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.reports .sheet {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.reports .sheet table {
+  font-size: 14px;
+}
+
+.reports .sheet th,
+.reports .sheet td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.reports .sheet th {
+  background: var(--chip);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.reports .sheet tr:last-child td {
+  border-bottom: 0;
+}
+
+.reports .sheet td.empty {
+  display: table-cell;
+  padding: 28px 14px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.backup.wrap {
+  max-width: 1600px;
+}
+
+.backup .cards {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .backup .legend {
   display: flex;
 }
